@@ -1,9 +1,16 @@
-from rest_framework.generics import CreateAPIView
+from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
-from .serializers import RegisterSerializer
+from .serializers import MeSerializer, RegisterSerializer
 
 
-class RegisterView(CreateAPIView):
+class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = (AllowAny,)
+
+
+class MeView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MeSerializer
+
+    def get_object(self):
+        return self.request.user
