@@ -13,7 +13,9 @@ dependencies = [
     "psycopg[binary] (>=3.2.9,<4.0.0)",
     "python-decouple (>=3.8,<4.0)",
     "djangorestframework-simplejwt (>=5.5.0,<6.0.0)",
-    "drf-spectacular (>=0.28.0,<0.29.0)"
+    "drf-spectacular (>=0.28.0,<0.29.0)",
+    "pytest (>=8.4.1,<9.0.0)",
+    "pytest-django (>=4.11.1,<5.0.0)"
 ]
 
 
