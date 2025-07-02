@@ -1,10 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from apps.core.models import TimeStampModel
+
 from .managers import UserManager
 
 
-class User(AbstractUser):
+class User(AbstractUser, TimeStampModel):
     class UserRoles(models.TextChoices):
         CLIENT = "client", "Client"
         FREELANCER = "freelancer", "Freelancer"
@@ -14,8 +16,6 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=10, choices=UserRoles)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
