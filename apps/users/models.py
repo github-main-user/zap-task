@@ -15,12 +15,17 @@ class User(AbstractUser, TimeStampModel):
     date_joined = None
 
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=10, choices=UserRoles)
+    role = models.CharField(
+        max_length=10, choices=UserRoles.choices, default=UserRoles.CLIENT
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects: UserManager = UserManager()
+
+    class Meta:
+        indexes = [models.Index(fields=["role"])]
 
     def __str__(self) -> str:
         return self.email
