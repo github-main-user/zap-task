@@ -5,9 +5,9 @@ from .models import User
 
 class IsClient(BasePermission):
     def has_permission(self, request, view) -> bool:
-        return request.user.role == User.UserRoles.CLIENT
+        return request.user.role == User.UserRole.CLIENT
 
 
 class IsFreelancer(BasePermission):
     def has_permission(self, request, view) -> bool:
-        return request.user.role == User.UserRoles.FREELANCER
+        return request.user.role == User.UserRole.FREELANCER

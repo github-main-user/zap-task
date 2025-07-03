@@ -7,7 +7,7 @@ from .managers import UserManager
 
 
 class User(AbstractUser, TimeStampModel):
-    class UserRoles(models.TextChoices):
+    class UserRole(models.TextChoices):
         CLIENT = "client", "Client"
         FREELANCER = "freelancer", "Freelancer"
 
@@ -16,7 +16,7 @@ class User(AbstractUser, TimeStampModel):
 
     email = models.EmailField(unique=True)
     role = models.CharField(
-        max_length=10, choices=UserRoles.choices, default=UserRoles.CLIENT
+        max_length=10, choices=UserRole.choices, default=UserRole.CLIENT
     )
 
     USERNAME_FIELD = "email"
