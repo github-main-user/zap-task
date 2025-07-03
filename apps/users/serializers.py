@@ -26,3 +26,9 @@ class MeSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+
+class UserShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "email")
