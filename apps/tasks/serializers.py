@@ -1,14 +1,12 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.users.serializers import UserShortSerializer
-
 from .models import Proposal, Task
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    client = UserShortSerializer(read_only=True)
-    freelancer = UserShortSerializer(read_only=True)
+    client = serializers.PrimaryKeyRelatedField(read_only=True)
+    freelancer = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Task
@@ -39,7 +37,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class ProposalSerializer(serializers.ModelSerializer):
-    freelancer = UserShortSerializer(read_only=True)
+    freelancer = serializers.PrimaryKeyRelatedField(read_only=True)
     task = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
