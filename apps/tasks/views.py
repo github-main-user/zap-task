@@ -5,7 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from apps.users.permissions import IsClient, IsFreelancer
 
 from .models import Proposal, Task
-from .permissions import IsProposalOwner, IsProposalTaskOwner, IsTaskOpen, IsTaskOwner
+from .permissions import (
+    IsProposalOwner,
+    IsProposalPending,
+    IsProposalTaskOwner,
+    IsTaskOpen,
+    IsTaskOwner,
+)
 from .serializers import ProposalSerializer, TaskSerializer
 
 
@@ -39,9 +45,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
         if self.action in ["create"]:
             permissions += [IsFreelancer()]
         elif self.action in ["retrieve"]:
-            permissions += [IsProposalTaskOwner(), IsProposalOwner()]
+            permissions += [IsProposalTaskOwner() | IsProposalOwner()]
         elif self.action in ["update", "partial_update", "destroy"]:
-            permissions += [IsProposalOwner()]
+            permissions += [IsProposalPending(), IsProposalOwner()]
         return permissions
 
     def perform_create(self, serializer):

@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from .models import Task
+from .models import Proposal, Task
 
 
 class IsTaskOpen(BasePermission):
@@ -11,6 +11,11 @@ class IsTaskOpen(BasePermission):
 class IsTaskOwner(BasePermission):
     def has_object_permission(self, request, view, task):
         return task.client == request.user
+
+
+class IsProposalPending(BasePermission):
+    def has_object_permission(self, request, view, task):
+        return task.status == Proposal.ProposalStatus.PENDING
 
 
 class IsProposalOwner(BasePermission):
