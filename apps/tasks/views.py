@@ -38,7 +38,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         task_id = self.kwargs.get("task_id")
-        return Proposal.objects.filter(task__id=task_id)
+        return self.queryset.filter(task__id=task_id)
 
     def get_permissions(self):
         permissions = [IsAuthenticated]
@@ -50,6 +50,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             permissions += [IsProposalPending, IsProposalOwner]
         return [permission() for permission in permissions]
 
-    def perform_create(self, serializer):
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
         task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
-        serializer.save(task=task, freelancer=self.request.user)
+        context |= {"task": task, "freelancer": self.request.user}
+        return context

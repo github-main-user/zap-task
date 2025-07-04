@@ -332,6 +332,20 @@ def test_proposal_create_as_freelancer_success(
 
 
 @pytest.mark.django_db
+def test_proposal_create_already_exists_for_this_task_fail(
+    api_client, freelancer_user, proposal_obj
+):
+    api_client.force_authenticate(freelancer_user)
+    response = api_client.post(
+        reverse("tasks:task-proposals-list", args=[proposal_obj.task.id]),
+        {"message": proposal_obj.message},
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert Proposal.objects.filter(message=proposal_obj.message).count() == 1
+
+
+@pytest.mark.django_db
 def test_proposal_create_as_client_fail(
     api_client, client_user, task_obj, proposal_data
 ):

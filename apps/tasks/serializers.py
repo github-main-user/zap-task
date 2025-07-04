@@ -53,4 +53,18 @@ class ProposalSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         )
-        read_only_fields = ("id", "freelancer", "task", "status", "created_at")
+        read_only_fields = ("id", "task", "freelancer", "status", "created_at")
+
+    def validate(self, attrs):
+        if self.instance is None:  # validation only on create
+            task = self.context["task"]
+            freelancer = self.context["freelancer"]
+
+            if Proposal.objects.filter(task=task, freelancer=freelancer).exists():
+                raise serializers.ValidationError(
+                    "You've already submitted a proposal for this task."
+                )
+
+            attrs |= {"task": task, "freelancer": freelancer}
+
+        return attrs
