@@ -21,12 +21,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     lookup_field = "id"
 
     def get_permissions(self):
-        permissions = [IsAuthenticated()]
+        permissions = [IsAuthenticated]
         if self.action in ["create"]:
-            permissions += [IsClient()]
+            permissions += [IsClient]
         elif self.action in ["update", "partial_update", "destroy"]:
-            permissions += [IsTaskOpen(), IsTaskOwner()]
-        return permissions
+            permissions += [IsTaskOpen, IsTaskOwner]
+        return [permission() for permission in permissions]
 
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
@@ -41,14 +41,14 @@ class ProposalViewSet(viewsets.ModelViewSet):
         return Proposal.objects.filter(task__id=task_id)
 
     def get_permissions(self):
-        permissions = [IsAuthenticated()]
+        permissions = [IsAuthenticated]
         if self.action in ["create"]:
-            permissions += [IsFreelancer()]
+            permissions += [IsFreelancer]
         elif self.action in ["retrieve"]:
-            permissions += [IsProposalTaskOwner() | IsProposalOwner()]
+            permissions += [IsProposalTaskOwner | IsProposalOwner]
         elif self.action in ["update", "partial_update", "destroy"]:
-            permissions += [IsProposalPending(), IsProposalOwner()]
-        return permissions
+            permissions += [IsProposalPending, IsProposalOwner]
+        return [permission() for permission in permissions]
 
     def perform_create(self, serializer):
         task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
