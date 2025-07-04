@@ -1,13 +1,18 @@
 from rest_framework.routers import DefaultRouter
+from rest_framework_nested.routers import NestedDefaultRouter
 
 from .apps import TasksConfig
-from .views import TaskViewSet
+from .views import ProposalViewSet, TaskViewSet
 
 app_name = TasksConfig.name
 
-task_router = DefaultRouter()
-task_router.register("", TaskViewSet, "task")
+tasks_router = DefaultRouter()
+tasks_router.register("tasks", TaskViewSet, "task")
+
+proposals_router = NestedDefaultRouter(tasks_router, "tasks", lookup="task")
+proposals_router.register("proposals", ProposalViewSet, "task-proposals")
 
 urlpatterns = [
-    *task_router.urls,
+    *tasks_router.urls,
+    *proposals_router.urls,
 ]
