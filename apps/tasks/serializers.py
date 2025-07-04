@@ -54,20 +54,3 @@ class ProposalSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = ("id", "freelancer", "task", "status", "created_at")
-
-    def validate(self, data):
-        request = self.context["request"]
-        task_id = self.context["view"].kwargs.get("task_id")
-
-        try:
-            task = Task.objects.get(id=task_id)
-        except Task.DoesNotExist:
-            raise serializers.ValidationError("Task does not exist.")
-
-        if task.client == request.user:
-            raise serializers.ValidationError("You can't propose to your own task.")
-
-        if Proposal.objects.filter(task=task, freelancer=request.user).exists():
-            raise serializers.ValidationError("You have already proposed to this task.")
-
-        return data
