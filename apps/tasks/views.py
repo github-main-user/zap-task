@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.users.permissions import IsClient, IsFreelancer
 
@@ -42,12 +44,14 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         permissions = [IsAuthenticated]
-        if self.action in ["create"]:
+        if self.action == "create":
             permissions += [IsFreelancer]
-        elif self.action in ["retrieve"]:
+        elif self.action == "retrieve":
             permissions += [IsProposalTaskOwner | IsProposalOwner]
         elif self.action in ["update", "partial_update", "destroy"]:
             permissions += [IsProposalPending, IsProposalOwner]
+        elif self.action in ["accept", "reject"]:
+            permissions += [IsProposalPending, IsProposalTaskOwner]
         return [permission() for permission in permissions]
 
     def get_serializer_context(self):
@@ -55,3 +59,15 @@ class ProposalViewSet(viewsets.ModelViewSet):
         task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
         context |= {"task": task, "freelancer": self.request.user}
         return context
+
+    @action(detail=True, methods=["post"])
+    def accept(self, request, task_id=None, pk=None):
+        proposal = self.get_object()
+        proposal.accept()
+        return Response(self.get_serializer(proposal).data)
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request, task_id=None, pk=None):
+        proposal = self.get_object()
+        proposal.reject()
+        return Response(self.get_serializer(proposal).data)

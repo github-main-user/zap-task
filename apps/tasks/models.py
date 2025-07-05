@@ -74,3 +74,16 @@ class Proposal(TimeStampModel):
             f"Proposal #{self.pk} for '{self.task.title}' "
             f"by {self.freelancer.username} [{self.status}]"
         )
+
+    def accept(self):
+        self.status = self.ProposalStatus.ACCEPTED
+        self.task.freelancer = self.freelancer
+        self.task.save()
+        self.save()
+        Proposal.objects.filter(task=self.task).exclude(id=self.id).update(
+            status=self.ProposalStatus.REJECTED
+        )
+
+    def reject(self):
+        self.status = self.ProposalStatus.REJECTED
+        self.save()
