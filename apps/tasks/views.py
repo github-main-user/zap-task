@@ -47,31 +47,31 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.save(client=self.request.user)
 
     @action(detail=True, methods=["post"])
-    def start(self, request, pk=None):
+    def start(self, *args, **kwargs):
         task = self.get_object()
         task.start()
         return Response(self.get_serializer(task).data)
 
     @action(detail=True, methods=["post"])
-    def submit(self, request, pk=None):
+    def submit(self, *args, **kwargs):
         task = self.get_object()
         task.begin_review()
         return Response(self.get_serializer(task).data)
 
     @action(detail=True, methods=["post"])
-    def approve_submission(self, request, pk=None):
+    def approve_submission(self, *args, **kwargs):
         task = self.get_object()
         task.complete()
         return Response(self.get_serializer(task).data)
 
     @action(detail=True, methods=["post"])
-    def reject_submission(self, request, pk=None):
+    def reject_submission(self, *args, **kwargs):
         task = self.get_object()
         task.start()
         return Response(self.get_serializer(task).data)
 
     @action(detail=True, methods=["post"])
-    def cancel(self, request, pk=None):
+    def cancel(self, *args, **kwargs):
         task = self.get_object()
         task.cancel()
         return Response(self.get_serializer(task).data)
@@ -107,13 +107,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
         return context
 
     @action(detail=True, methods=["post"])
-    def accept(self, request, task_pk=None, pk=None):
+    def accept(self, *args, **kwargs):
         proposal = self.get_object()
         proposal.accept()
         return Response(self.get_serializer(proposal).data)
 
     @action(detail=True, methods=["post"])
-    def reject(self, request, task_pk=None, pk=None):
+    def reject(self, *args, **kwargs):
         proposal = self.get_object()
         proposal.reject()
         return Response(self.get_serializer(proposal).data)
