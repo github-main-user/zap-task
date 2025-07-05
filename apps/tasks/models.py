@@ -80,7 +80,7 @@ class Proposal(TimeStampModel):
         self.task.freelancer = self.freelancer
         self.task.save()
         self.save()
-        Proposal.objects.filter(task=self.task).exclude(id=self.id).update(
+        Proposal.objects.filter(task=self.task).exclude(pk=self.pk).update(
             status=self.ProposalStatus.REJECTED
         )
 

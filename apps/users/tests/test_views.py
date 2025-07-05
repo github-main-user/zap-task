@@ -73,7 +73,6 @@ def test_user_register_success(api_client, django_user_model):
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-
     assert django_user_model.objects.filter(email="new@user.com").exists()
 
 
@@ -84,7 +83,6 @@ def test_user_register_already_exists(api_client, django_user_model, test_user):
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-
     assert not django_user_model.objects.filter(email="new@user.com").exists()
 
 
@@ -115,7 +113,6 @@ def test_update_me_unauthenticated(api_client, test_user):
     response = api_client.patch(reverse("users:me"), {"first_name": "UPDATED"})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
     test_user.refresh_from_db()
     assert test_user.first_name != "UPDATED"
 

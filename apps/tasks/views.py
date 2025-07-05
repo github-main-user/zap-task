@@ -20,7 +20,6 @@ from .serializers import ProposalSerializer, TaskSerializer
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    lookup_field = "id"
 
     def get_permissions(self):
         permissions = [IsAuthenticated]
@@ -39,8 +38,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
     serializer_class = ProposalSerializer
 
     def get_queryset(self):
-        task_id = self.kwargs.get("task_id")
-        return self.queryset.filter(task__id=task_id)
+        task_pk = self.kwargs.get("task_pk")
+        return self.queryset.filter(task__pk=task_pk)
 
     def get_permissions(self):
         permissions = [IsAuthenticated]
@@ -56,18 +55,18 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
+        task = get_object_or_404(Task, pk=self.kwargs.get("task_pk"))
         context |= {"task": task, "freelancer": self.request.user}
         return context
 
     @action(detail=True, methods=["post"])
-    def accept(self, request, task_id=None, pk=None):
+    def accept(self, request, task_pk=None, pk=None):
         proposal = self.get_object()
         proposal.accept()
         return Response(self.get_serializer(proposal).data)
 
     @action(detail=True, methods=["post"])
-    def reject(self, request, task_id=None, pk=None):
+    def reject(self, request, task_pk=None, pk=None):
         proposal = self.get_object()
         proposal.reject()
         return Response(self.get_serializer(proposal).data)

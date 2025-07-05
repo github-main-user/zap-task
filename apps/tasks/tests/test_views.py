@@ -142,7 +142,7 @@ def test_task_retrieve_not_found(api_client, client_user):
 
 @pytest.mark.django_db
 def test_task_retrieve_unauthenticated(api_client, task_obj):
-    response = api_client.get(reverse("tasks:task-detail", args=[task_obj.id]))
+    response = api_client.get(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert "id" not in response.data
@@ -151,10 +151,10 @@ def test_task_retrieve_unauthenticated(api_client, task_obj):
 @pytest.mark.django_db
 def test_task_retrieve_success(api_client, client_user, task_obj):
     api_client.force_authenticate(client_user)
-    response = api_client.get(reverse("tasks:task-detail", args=[task_obj.id]))
+    response = api_client.get(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.id
+    assert response.data.get("id") == task_obj.pk
 
 
 # update
@@ -174,7 +174,7 @@ def test_task_update_not_found(api_client, client_user):
 @pytest.mark.django_db
 def test_task_update_unauthenticated(api_client, task_obj):
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.id]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -187,11 +187,11 @@ def test_task_update_unauthenticated(api_client, task_obj):
 def test_task_update_as_owner_success(api_client, client_user, task_obj):
     api_client.force_authenticate(client_user)
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.id]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.id
+    assert response.data.get("id") == task_obj.pk
     task_obj.refresh_from_db()
     assert task_obj.title == "UPDATED"
 
@@ -200,7 +200,7 @@ def test_task_update_as_owner_success(api_client, client_user, task_obj):
 def test_task_update_as_foreign_user_fail(api_client, freelancer_user, task_obj):
     api_client.force_authenticate(freelancer_user)
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.id]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -215,7 +215,7 @@ def test_task_update_status_is_not_open_fail(api_client, client_user, task_obj):
     task_obj.save()
     api_client.force_authenticate(client_user)
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.id]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -237,28 +237,28 @@ def test_task_delete_not_found(api_client, client_user):
 
 @pytest.mark.django_db
 def test_task_delete_unauthenticated(api_client, task_obj):
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.id]))
+    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert Task.objects.filter(id=task_obj.id).exists()
+    assert Task.objects.filter(id=task_obj.pk).exists()
 
 
 @pytest.mark.django_db
 def test_task_delete_as_owner_success(api_client, client_user, task_obj):
     api_client.force_authenticate(client_user)
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.id]))
+    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Task.objects.filter(id=task_obj.id).exists()
+    assert not Task.objects.filter(id=task_obj.pk).exists()
 
 
 @pytest.mark.django_db
 def test_task_delete_as_foreign_user_fail(api_client, freelancer_user, task_obj):
     api_client.force_authenticate(freelancer_user)
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.id]))
+    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Task.objects.filter(id=task_obj.id).exists()
+    assert Task.objects.filter(id=task_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -266,10 +266,10 @@ def test_task_delete_task_completed_fail(api_client, client_user, task_obj):
     task_obj.status = Task.TaskStatus.COMPLETED
     task_obj.save()
     api_client.force_authenticate(client_user)
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.id]))
+    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Task.objects.filter(id=task_obj.id).exists()
+    assert Task.objects.filter(id=task_obj.pk).exists()
 
 
 # ====================
@@ -283,7 +283,7 @@ def test_task_delete_task_completed_fail(api_client, client_user, task_obj):
 @pytest.mark.django_db
 def test_proposal_list_unauthenticated(api_client, proposal_obj):
     response = api_client.get(
-        reverse("tasks:task-proposals-list", args=[proposal_obj.task.id])
+        reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk])
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -294,7 +294,7 @@ def test_proposal_list_unauthenticated(api_client, proposal_obj):
 def test_proposal_list_success(api_client, client_user, proposal_obj):
     api_client.force_authenticate(client_user)
     response = api_client.get(
-        reverse("tasks:task-proposals-list", args=[proposal_obj.task.id])
+        reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk])
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -308,7 +308,7 @@ def test_proposal_list_success(api_client, client_user, proposal_obj):
 @pytest.mark.django_db
 def test_proposal_create_unauthenticated(api_client, task_obj, proposal_data):
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[task_obj.id]), proposal_data
+        reverse("tasks:task-proposals-list", args=[task_obj.pk]), proposal_data
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -321,7 +321,7 @@ def test_proposal_create_as_freelancer_success(
 ):
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[task_obj.id]), proposal_data
+        reverse("tasks:task-proposals-list", args=[task_obj.pk]), proposal_data
     )
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -337,7 +337,7 @@ def test_proposal_create_already_exists_for_this_task_fail(
 ):
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[proposal_obj.task.id]),
+        reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk]),
         {"message": proposal_obj.message},
     )
 
@@ -351,7 +351,7 @@ def test_proposal_create_as_client_fail(
 ):
     api_client.force_authenticate(client_user)
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[task_obj.id]), proposal_data
+        reverse("tasks:task-proposals-list", args=[task_obj.pk]), proposal_data
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -385,12 +385,12 @@ def test_proposal_retrieve_as_proposal_task_owner_success(
     api_client.force_authenticate(client_user)
     response = api_client.get(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == proposal_obj.id
+    assert response.data.get("id") == proposal_obj.pk
 
 
 @pytest.mark.django_db
@@ -400,12 +400,12 @@ def test_proposal_retrieve_as_proposal_owner_success(
     api_client.force_authenticate(freelancer_user)
     response = api_client.get(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == proposal_obj.id
+    assert response.data.get("id") == proposal_obj.pk
 
 
 @pytest.mark.django_db
@@ -416,7 +416,7 @@ def test_proposal_retrieve_as_foreign_user_fail(api_client, proposal_obj):
     api_client.force_authenticate(temp_user)
     response = api_client.get(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
@@ -442,7 +442,7 @@ def test_proposal_update_not_found(api_client, freelancer_user):
 def test_proposal_update_unauthenticated(api_client, proposal_obj):
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         ),
         {"message": "UPDATED"},
     )
@@ -458,13 +458,13 @@ def test_proposal_update_as_owner_success(api_client, freelancer_user, proposal_
     api_client.force_authenticate(freelancer_user)
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         ),
         {"message": "UPDATED"},
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == proposal_obj.id
+    assert response.data.get("id") == proposal_obj.pk
     proposal_obj.refresh_from_db()
     assert proposal_obj.message == "UPDATED"
 
@@ -474,7 +474,7 @@ def test_proposal_update_as_foreign_user_fail(api_client, client_user, proposal_
     api_client.force_authenticate(client_user)
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         ),
         {"message": "UPDATED"},
     )
@@ -494,7 +494,7 @@ def test_proposal_update_status_is_not_pending_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         ),
         {"message": "UPDATED"},
     )
@@ -520,12 +520,12 @@ def test_proposal_delete_not_found(api_client, freelancer_user):
 def test_proposal_delete_unauthenticated(api_client, proposal_obj):
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert Proposal.objects.filter(id=proposal_obj.id).exists()
+    assert Proposal.objects.filter(id=proposal_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -533,12 +533,12 @@ def test_proposal_delete_as_owner_success(api_client, freelancer_user, proposal_
     api_client.force_authenticate(freelancer_user)
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Proposal.objects.filter(id=proposal_obj.id).exists()
+    assert not Proposal.objects.filter(id=proposal_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -546,12 +546,12 @@ def test_proposal_delete_as_foreign_user_fail(api_client, client_user, proposal_
     api_client.force_authenticate(client_user)
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Proposal.objects.filter(id=proposal_obj.id).exists()
+    assert Proposal.objects.filter(id=proposal_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -561,12 +561,12 @@ def test_proposal_delete_is_not_pending_fail(api_client, client_user, proposal_o
     api_client.force_authenticate(client_user)
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Proposal.objects.filter(id=proposal_obj.id).exists()
+    assert Proposal.objects.filter(id=proposal_obj.pk).exists()
 
 
 # accept
@@ -579,12 +579,12 @@ def test_proposal_accept_as_proposal_task_owner_success(
     api_client.force_authenticate(client_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-accept", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-accept", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == proposal_obj.id
+    assert response.data.get("id") == proposal_obj.pk
     assert response.data.get("status") == Proposal.ProposalStatus.ACCEPTED
     proposal_obj.refresh_from_db()
     assert proposal_obj.status == Proposal.ProposalStatus.ACCEPTED
@@ -598,7 +598,7 @@ def test_proposal_accept_as_foreign_user_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-accept", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-accept", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
@@ -617,7 +617,7 @@ def test_proposal_accept_not_pending_proposal_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-accept", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-accept", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
@@ -638,12 +638,12 @@ def test_proposal_reject_as_proposal_task_owner_success(
     api_client.force_authenticate(client_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-reject", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-reject", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == proposal_obj.id
+    assert response.data.get("id") == proposal_obj.pk
     assert response.data.get("status") == Proposal.ProposalStatus.REJECTED
     proposal_obj.refresh_from_db()
     assert proposal_obj.status == Proposal.ProposalStatus.REJECTED
@@ -656,7 +656,7 @@ def test_proposal_reject_as_foreign_user_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-reject", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-reject", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
@@ -674,7 +674,7 @@ def test_proposal_reject_not_pending_proposal_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-reject", args=[proposal_obj.task.id, proposal_obj.id]
+            "tasks:task-proposals-reject", args=[proposal_obj.task.pk, proposal_obj.pk]
         )
     )
 
