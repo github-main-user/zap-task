@@ -10,6 +10,7 @@ class Task(TimeStampModel):
     class TaskStatus(models.TextChoices):
         OPEN = "open", "Open"
         IN_PROGRESS = "in_progress", "In progress"
+        PENDING_REVIEW = "pending_review", "Pending review"
         COMPLETED = "completed", "Completed"
         CANCELED = "canceled", "Canceled"
 
@@ -40,6 +41,22 @@ class Task(TimeStampModel):
 
     def __str__(self) -> str:
         return f"Task #{self.pk} '{self.title}' [{self.status}]"
+
+    def start(self):
+        self.status = self.TaskStatus.IN_PROGRESS
+        self.save()
+
+    def begin_review(self):
+        self.status = self.TaskStatus.PENDING_REVIEW
+        self.save()
+
+    def complete(self):
+        self.status = self.TaskStatus.COMPLETED
+        self.save()
+
+    def cancel(self):
+        self.status = self.TaskStatus.CANCELED
+        self.save()
 
 
 class Proposal(TimeStampModel):
