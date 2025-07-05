@@ -567,3 +567,118 @@ def test_proposal_delete_is_not_pending_fail(api_client, client_user, proposal_o
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert Proposal.objects.filter(id=proposal_obj.id).exists()
+
+
+# accept
+
+
+@pytest.mark.django_db
+def test_proposal_accept_as_proposal_task_owner_success(
+    api_client, client_user, proposal_obj
+):
+    api_client.force_authenticate(client_user)
+    response = api_client.post(
+        reverse(
+            "tasks:task-proposals-accept", args=[proposal_obj.task.id, proposal_obj.id]
+        )
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data.get("id") == proposal_obj.id
+    assert response.data.get("status") == Proposal.ProposalStatus.ACCEPTED
+    proposal_obj.refresh_from_db()
+    assert proposal_obj.status == Proposal.ProposalStatus.ACCEPTED
+    assert proposal_obj.task.freelancer == proposal_obj.freelancer
+
+
+@pytest.mark.django_db
+def test_proposal_accept_as_foreign_user_fail(
+    api_client, freelancer_user, proposal_obj
+):
+    api_client.force_authenticate(freelancer_user)
+    response = api_client.post(
+        reverse(
+            "tasks:task-proposals-accept", args=[proposal_obj.task.id, proposal_obj.id]
+        )
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not "id" in response.data
+    proposal_obj.refresh_from_db()
+    assert proposal_obj.status != Proposal.ProposalStatus.ACCEPTED
+    assert proposal_obj.task.freelancer != proposal_obj.freelancer
+
+
+@pytest.mark.django_db
+def test_proposal_accept_not_pending_proposal_fail(
+    api_client, freelancer_user, proposal_obj
+):
+    proposal_obj.reject()
+    api_client.force_authenticate(freelancer_user)
+    response = api_client.post(
+        reverse(
+            "tasks:task-proposals-accept", args=[proposal_obj.task.id, proposal_obj.id]
+        )
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not "id" in response.data
+    proposal_obj.refresh_from_db()
+    assert proposal_obj.status != Proposal.ProposalStatus.ACCEPTED
+    assert proposal_obj.task.freelancer != proposal_obj.freelancer
+
+
+# reject
+
+
+@pytest.mark.django_db
+def test_proposal_reject_as_proposal_task_owner_success(
+    api_client, client_user, proposal_obj
+):
+    api_client.force_authenticate(client_user)
+    response = api_client.post(
+        reverse(
+            "tasks:task-proposals-reject", args=[proposal_obj.task.id, proposal_obj.id]
+        )
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data.get("id") == proposal_obj.id
+    assert response.data.get("status") == Proposal.ProposalStatus.REJECTED
+    proposal_obj.refresh_from_db()
+    assert proposal_obj.status == Proposal.ProposalStatus.REJECTED
+
+
+@pytest.mark.django_db
+def test_proposal_reject_as_foreign_user_fail(
+    api_client, freelancer_user, proposal_obj
+):
+    api_client.force_authenticate(freelancer_user)
+    response = api_client.post(
+        reverse(
+            "tasks:task-proposals-reject", args=[proposal_obj.task.id, proposal_obj.id]
+        )
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not "id" in response.data
+    proposal_obj.refresh_from_db()
+    assert proposal_obj.status != Proposal.ProposalStatus.REJECTED
+
+
+@pytest.mark.django_db
+def test_proposal_reject_not_pending_proposal_fail(
+    api_client, freelancer_user, proposal_obj
+):
+    proposal_obj.accept()
+    api_client.force_authenticate(freelancer_user)
+    response = api_client.post(
+        reverse(
+            "tasks:task-proposals-reject", args=[proposal_obj.task.id, proposal_obj.id]
+        )
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not "id" in response.data
+    proposal_obj.refresh_from_db()
+    assert proposal_obj.status != Proposal.ProposalStatus.REJECTED
