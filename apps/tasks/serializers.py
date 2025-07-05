@@ -44,8 +44,16 @@ class ProposalSerializer(serializers.ModelSerializer):
             "price_offer",
             "status",
             "created_at",
+            "updated_at",
         )
-        read_only_fields = ("id", "task", "freelancer", "status", "created_at")
+        read_only_fields = (
+            "id",
+            "task",
+            "freelancer",
+            "status",
+            "created_at",
+            "updated_at",
+        )
 
     def validate(self, attrs):
         if self.instance is None:  # validation only on create
