@@ -5,9 +5,6 @@ from .models import Proposal, Task
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    client = serializers.PrimaryKeyRelatedField(read_only=True)
-    freelancer = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = Task
         fields = (
@@ -37,9 +34,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class ProposalSerializer(serializers.ModelSerializer):
-    freelancer = serializers.PrimaryKeyRelatedField(read_only=True)
-    task = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = Proposal
         fields = (
