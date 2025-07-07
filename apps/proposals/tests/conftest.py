@@ -1,10 +1,10 @@
 import pytest
 from django.contrib.auth import get_user_model
 
+from apps.proposals.models import Proposal
 from apps.tasks.models import Task
 
 User = get_user_model()
-
 
 # ==========
 #  fixtures
@@ -36,11 +36,23 @@ def task_data():
 
 
 @pytest.fixture
+def proposal_data():
+    return {"message": "Proposal Message"}
+
+
+@pytest.fixture
 def task_obj(db, task_data, client_user):
     return Task.objects.create(
         **task_data,
         status=Task.TaskStatus.OPEN,
         client=client_user,
+    )
+
+
+@pytest.fixture
+def proposal_obj(db, proposal_data, task_obj, freelancer_user):
+    return Proposal.objects.create(
+        **proposal_data, task=task_obj, freelancer=freelancer_user
     )
 
 

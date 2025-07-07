@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 
-from apps.tasks.models import Proposal
+from apps.proposals.models import Proposal
 
 User = get_user_model()
 
@@ -18,7 +18,7 @@ User = get_user_model()
 
 def test_proposal_list_unauthenticated(api_client, proposal_obj):
     response = api_client.get(
-        reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk])
+        reverse("proposals:task-proposals-list", args=[proposal_obj.task.pk])
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -29,7 +29,7 @@ def test_proposal_list_unauthenticated(api_client, proposal_obj):
 def test_proposal_list_success(api_client, client_user, proposal_obj):
     api_client.force_authenticate(client_user)
     response = api_client.get(
-        reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk])
+        reverse("proposals:task-proposals-list", args=[proposal_obj.task.pk])
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -42,7 +42,7 @@ def test_proposal_list_success(api_client, client_user, proposal_obj):
 
 def test_proposal_create_unauthenticated(api_client, task_obj, proposal_data):
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[task_obj.pk]), proposal_data
+        reverse("proposals:task-proposals-list", args=[task_obj.pk]), proposal_data
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -55,7 +55,7 @@ def test_proposal_create_as_freelancer_success(
 ):
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[task_obj.pk]), proposal_data
+        reverse("proposals:task-proposals-list", args=[task_obj.pk]), proposal_data
     )
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -71,7 +71,7 @@ def test_proposal_create_already_exists_for_this_task_fail(
 ):
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk]),
+        reverse("proposals:task-proposals-list", args=[proposal_obj.task.pk]),
         {"message": proposal_obj.message},
     )
 
@@ -85,7 +85,7 @@ def test_proposal_create_as_client_fail(
 ):
     api_client.force_authenticate(client_user)
     response = api_client.post(
-        reverse("tasks:task-proposals-list", args=[task_obj.pk]), proposal_data
+        reverse("proposals:task-proposals-list", args=[task_obj.pk]), proposal_data
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -98,14 +98,14 @@ def test_proposal_create_as_client_fail(
 @pytest.mark.django_db
 def test_proposal_retrieve_not_found(api_client, freelancer_user):
     api_client.force_authenticate(freelancer_user)
-    response = api_client.get(reverse("tasks:task-proposals-detail", args=[0, 0]))
+    response = api_client.get(reverse("proposals:task-proposals-detail", args=[0, 0]))
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert "id" not in response.data
 
 
 def test_proposal_retrieve_unauthenticated(api_client):
-    response = api_client.get(reverse("tasks:task-proposals-detail", args=[0, 0]))
+    response = api_client.get(reverse("proposals:task-proposals-detail", args=[0, 0]))
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert "id" not in response.data
@@ -118,7 +118,8 @@ def test_proposal_retrieve_as_proposal_task_owner_success(
     api_client.force_authenticate(client_user)
     response = api_client.get(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -133,7 +134,8 @@ def test_proposal_retrieve_as_proposal_owner_success(
     api_client.force_authenticate(freelancer_user)
     response = api_client.get(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -149,7 +151,8 @@ def test_proposal_retrieve_as_foreign_user_fail(api_client, proposal_obj):
     api_client.force_authenticate(temp_user)
     response = api_client.get(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -164,7 +167,7 @@ def test_proposal_retrieve_as_foreign_user_fail(api_client, proposal_obj):
 def test_proposal_update_not_found(api_client, freelancer_user):
     api_client.force_authenticate(freelancer_user)
     response = api_client.patch(
-        reverse("tasks:task-proposals-detail", args=[0, 0]), {"message": "UPDATED"}
+        reverse("proposals:task-proposals-detail", args=[0, 0]), {"message": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -174,7 +177,8 @@ def test_proposal_update_not_found(api_client, freelancer_user):
 def test_proposal_update_unauthenticated(api_client, proposal_obj):
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         ),
         {"message": "UPDATED"},
     )
@@ -190,7 +194,8 @@ def test_proposal_update_as_owner_success(api_client, freelancer_user, proposal_
     api_client.force_authenticate(freelancer_user)
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         ),
         {"message": "UPDATED"},
     )
@@ -206,7 +211,8 @@ def test_proposal_update_as_foreign_user_fail(api_client, client_user, proposal_
     api_client.force_authenticate(client_user)
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         ),
         {"message": "UPDATED"},
     )
@@ -226,7 +232,8 @@ def test_proposal_update_status_is_not_pending_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.patch(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         ),
         {"message": "UPDATED"},
     )
@@ -243,7 +250,9 @@ def test_proposal_update_status_is_not_pending_fail(
 @pytest.mark.django_db
 def test_proposal_delete_not_found(api_client, freelancer_user):
     api_client.force_authenticate(freelancer_user)
-    response = api_client.delete(reverse("tasks:task-proposals-detail", args=[0, 0]))
+    response = api_client.delete(
+        reverse("proposals:task-proposals-detail", args=[0, 0])
+    )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -251,7 +260,8 @@ def test_proposal_delete_not_found(api_client, freelancer_user):
 def test_proposal_delete_unauthenticated(api_client, proposal_obj):
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -264,7 +274,8 @@ def test_proposal_delete_as_owner_success(api_client, freelancer_user, proposal_
     api_client.force_authenticate(freelancer_user)
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -277,7 +288,8 @@ def test_proposal_delete_as_foreign_user_fail(api_client, client_user, proposal_
     api_client.force_authenticate(client_user)
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -292,7 +304,8 @@ def test_proposal_delete_is_not_pending_fail(api_client, client_user, proposal_o
     api_client.force_authenticate(client_user)
     response = api_client.delete(
         reverse(
-            "tasks:task-proposals-detail", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-detail",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -310,7 +323,8 @@ def test_proposal_accept_as_proposal_task_owner_success(
     api_client.force_authenticate(client_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-accept", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-accept",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -329,7 +343,8 @@ def test_proposal_accept_as_foreign_user_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-accept", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-accept",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -348,7 +363,8 @@ def test_proposal_accept_not_pending_proposal_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-accept", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-accept",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -369,7 +385,8 @@ def test_proposal_reject_as_proposal_task_owner_success(
     api_client.force_authenticate(client_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-reject", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-reject",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -387,7 +404,8 @@ def test_proposal_reject_as_foreign_user_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-reject", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-reject",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
@@ -405,7 +423,8 @@ def test_proposal_reject_not_pending_proposal_fail(
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
-            "tasks:task-proposals-reject", args=[proposal_obj.task.pk, proposal_obj.pk]
+            "proposals:task-proposals-reject",
+            args=[proposal_obj.task.pk, proposal_obj.pk],
         )
     )
 
