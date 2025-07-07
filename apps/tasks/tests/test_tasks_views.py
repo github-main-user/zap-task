@@ -62,6 +62,17 @@ def test_task_create_as_freelancer_fail(api_client, freelancer_user, task_data):
     assert not Task.objects.filter(title=task_data["title"]).exists()
 
 
+@pytest.mark.django_db
+def test_task_create_deadline_in_past_fail(api_client, client_user, task_data):
+    api_client.force_authenticate(client_user)
+    response = api_client.post(
+        reverse("tasks:task-list"), task_data | {"deadline": "1970-12-31"}
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert not Task.objects.filter(title=task_data["title"]).exists()
+
+
 # retrieve
 
 
