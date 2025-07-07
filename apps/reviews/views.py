@@ -24,8 +24,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return self._task
 
     def get_queryset(self):
-        task_pk = self.kwargs.get("task_pk")
-        return self.queryset.filter(task__pk=task_pk)
+        return self.queryset.filter(task=self.get_task())
 
     def get_permissions(self):
         permissions = [IsAuthenticated]
