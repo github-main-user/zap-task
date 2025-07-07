@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.proposals.models import Proposal
+from apps.tasks.models import Task
 
 User = get_user_model()
 
@@ -83,6 +84,21 @@ def test_proposal_create_already_exists_for_this_task_fail(
 def test_proposal_create_as_client_fail(
     api_client, client_user, task_obj, proposal_data
 ):
+    api_client.force_authenticate(client_user)
+    response = api_client.post(
+        reverse("proposals:task-proposals-list", args=[task_obj.pk]), proposal_data
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not Proposal.objects.filter(message=proposal_data["message"]).exists()
+
+
+@pytest.mark.django_db
+def test_proposal_create_task_is_not_open_fail(
+    api_client, client_user, task_obj, proposal_data
+):
+    task_obj.status = Task.TaskStatus.IN_PROGRESS
+    task_obj.save()
     api_client.force_authenticate(client_user)
     response = api_client.post(
         reverse("proposals:task-proposals-list", args=[task_obj.pk]), proposal_data
