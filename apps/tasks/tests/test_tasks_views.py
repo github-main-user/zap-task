@@ -174,7 +174,7 @@ def test_task_delete_unauthenticated(api_client, task_obj):
     response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert Task.objects.filter(id=task_obj.pk).exists()
+    assert Task.objects.filter(pk=task_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -183,7 +183,7 @@ def test_task_delete_as_owner_success(api_client, client_user, task_obj):
     response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Task.objects.filter(id=task_obj.pk).exists()
+    assert not Task.objects.filter(pk=task_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -192,7 +192,7 @@ def test_task_delete_as_foreign_user_fail(api_client, freelancer_user, task_obj)
     response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Task.objects.filter(id=task_obj.pk).exists()
+    assert Task.objects.filter(pk=task_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -203,7 +203,7 @@ def test_task_delete_task_completed_fail(api_client, client_user, task_obj):
     response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Task.objects.filter(id=task_obj.pk).exists()
+    assert Task.objects.filter(pk=task_obj.pk).exists()
 
 
 # start

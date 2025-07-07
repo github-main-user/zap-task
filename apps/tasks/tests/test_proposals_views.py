@@ -261,7 +261,7 @@ def test_proposal_delete_unauthenticated(api_client, proposal_obj):
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert Proposal.objects.filter(id=proposal_obj.pk).exists()
+    assert Proposal.objects.filter(pk=proposal_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -274,7 +274,7 @@ def test_proposal_delete_as_owner_success(api_client, freelancer_user, proposal_
     )
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Proposal.objects.filter(id=proposal_obj.pk).exists()
+    assert not Proposal.objects.filter(pk=proposal_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -287,7 +287,7 @@ def test_proposal_delete_as_foreign_user_fail(api_client, client_user, proposal_
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Proposal.objects.filter(id=proposal_obj.pk).exists()
+    assert Proposal.objects.filter(pk=proposal_obj.pk).exists()
 
 
 @pytest.mark.django_db
@@ -302,7 +302,7 @@ def test_proposal_delete_is_not_pending_fail(api_client, client_user, proposal_o
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Proposal.objects.filter(id=proposal_obj.pk).exists()
+    assert Proposal.objects.filter(pk=proposal_obj.pk).exists()
 
 
 # accept
