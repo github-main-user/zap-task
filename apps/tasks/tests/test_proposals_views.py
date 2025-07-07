@@ -16,7 +16,6 @@ User = get_user_model()
 # list
 
 
-@pytest.mark.django_db
 def test_proposal_list_unauthenticated(api_client, proposal_obj):
     response = api_client.get(
         reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk])
@@ -41,7 +40,6 @@ def test_proposal_list_success(api_client, client_user, proposal_obj):
 # create
 
 
-@pytest.mark.django_db
 def test_proposal_create_unauthenticated(api_client, task_obj, proposal_data):
     response = api_client.post(
         reverse("tasks:task-proposals-list", args=[task_obj.pk]), proposal_data
@@ -106,7 +104,6 @@ def test_proposal_retrieve_not_found(api_client, freelancer_user):
     assert "id" not in response.data
 
 
-@pytest.mark.django_db
 def test_proposal_retrieve_unauthenticated(api_client):
     response = api_client.get(reverse("tasks:task-proposals-detail", args=[0, 0]))
 
@@ -174,7 +171,6 @@ def test_proposal_update_not_found(api_client, freelancer_user):
     assert "id" not in response.data
 
 
-@pytest.mark.django_db
 def test_proposal_update_unauthenticated(api_client, proposal_obj):
     response = api_client.patch(
         reverse(
@@ -252,7 +248,6 @@ def test_proposal_delete_not_found(api_client, freelancer_user):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-@pytest.mark.django_db
 def test_proposal_delete_unauthenticated(api_client, proposal_obj):
     response = api_client.delete(
         reverse(

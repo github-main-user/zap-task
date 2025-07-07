@@ -89,7 +89,6 @@ def test_user_register_already_exists(api_client, django_user_model, test_user):
 # me/ retrieve
 
 
-@pytest.mark.django_db
 def test_retrieve_me_unauthenticated(api_client):
     response = api_client.get(reverse("users:me"))
 
@@ -108,7 +107,6 @@ def test_retrieve_me_success(api_client, test_user):
 # me/ update
 
 
-@pytest.mark.django_db
 def test_update_me_unauthenticated(api_client, test_user):
     response = api_client.patch(reverse("users:me"), {"first_name": "UPDATED"})
 
@@ -130,7 +128,6 @@ def test_update_me_success(api_client, test_user):
 # me/ delete
 
 
-@pytest.mark.django_db
 def test_delete_me_unauthenticated(api_client, django_user_model, test_user):
     response = api_client.delete(reverse("users:me"))
 

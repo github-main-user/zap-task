@@ -74,7 +74,6 @@ def test_task_retrieve_not_found(api_client, client_user):
     assert "id" not in response.data
 
 
-@pytest.mark.django_db
 def test_task_retrieve_unauthenticated(api_client, task_obj):
     response = api_client.get(reverse("tasks:task-detail", args=[task_obj.pk]))
 
@@ -105,7 +104,6 @@ def test_task_update_not_found(api_client, client_user):
     assert "id" not in response.data
 
 
-@pytest.mark.django_db
 def test_task_update_unauthenticated(api_client, task_obj):
     response = api_client.patch(
         reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
@@ -169,7 +167,6 @@ def test_task_delete_not_found(api_client, client_user):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-@pytest.mark.django_db
 def test_task_delete_unauthenticated(api_client, task_obj):
     response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
