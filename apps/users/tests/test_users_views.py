@@ -15,7 +15,7 @@ def test_user(django_user_model):
 def test_obtain_token_pair_success(api_client, test_user):
     response = api_client.post(
         reverse("users:token_obtain_pair"),
-        {"email": "test@test.com", "password": "pass"},
+        {"email": "owner@owner.com", "password": "pass"},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -42,7 +42,7 @@ def test_obtain_token_pair_wrong_credentials(api_client):
 def test_refresh_token_success(api_client, test_user):
     response = api_client.post(
         reverse("users:token_obtain_pair"),
-        {"email": "test@test.com", "password": "pass"},
+        {"email": "owner@owner.com", "password": "pass"},
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -79,7 +79,7 @@ def test_user_register_success(api_client, django_user_model):
 @pytest.mark.django_db
 def test_user_register_already_exists(api_client, django_user_model, test_user):
     response = api_client.post(
-        reverse("users:register"), {"email": "test@test.com", "password": "pass"}
+        reverse("users:register"), {"email": "owner@owner.com", "password": "pass"}
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
