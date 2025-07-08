@@ -16,11 +16,13 @@ User = get_user_model()
 # list
 
 
-def test_task_list_unauthenticated(api_client):
+@pytest.mark.django_db
+def test_task_list_unauthenticated(api_client, tasks):
     response = api_client.get(reverse("tasks:task-list"))
 
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert "results" not in response.data
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data.get("count") == len(tasks)
+    assert "results" in response.data
 
 
 @pytest.mark.django_db
@@ -569,4 +571,3 @@ def test_task_cancel_not_open_fail(api_client, client_user, freelancer_user, tas
     assert "id" not in response.data
     task_obj.refresh_from_db()
     assert task_obj.status == Task.TaskStatus.COMPLETED
-

@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from apps.users.permissions import IsClient
@@ -33,7 +33,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         summary="List all tasks",
-        description="Retrieves a list of all tasks. Accessible by authenticated users.",
+        description="Retrieves a list of all tasks. Accessible by all users.",
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -80,6 +80,8 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         permissions = [IsAuthenticated]
         # default actions
+        if self.action == "list":
+            permissions = [AllowAny]
         if self.action == "create":
             permissions += [IsClient]
         elif self.action in ["update", "partial_update", "destroy"]:
