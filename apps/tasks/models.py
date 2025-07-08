@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.validators import MinValueValidator
 
 from apps.core.models import TimeStampModel
 
@@ -16,7 +17,7 @@ class Task(TimeStampModel):
 
     title = models.CharField(max_length=200)
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     deadline = models.DateTimeField()
     status = models.CharField(
         max_length=15, choices=TaskStatus.choices, default=TaskStatus.OPEN
