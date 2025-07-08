@@ -14,9 +14,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             "rating",
             "comment",
             "created_at",
-            "updated_at",
         )
-        read_only_fields = ("task", "reviewer", "recipient", "created_at", "updated_at")
+        read_only_fields = ("task", "reviewer", "recipient", "created_at")
 
     def validate(self, attrs):
         if self.instance is None:  # validation only on create

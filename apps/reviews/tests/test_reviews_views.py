@@ -215,22 +215,7 @@ def test_review_retrieve_as_random_user_success(api_client, review_obj):
 # update
 
 
-def test_review_update_unauthenticated(api_client, review_obj):
-    response = api_client.patch(
-        reverse(
-            "reviews:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk]
-        ),
-        {"comment": "UPDATED"},
-    )
-
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert not "id" in response.data
-    review_obj.refresh_from_db()
-    assert review_obj.comment != "UPDATED"
-
-
-@pytest.mark.django_db
-def test_review_update_as_owner_success(api_client, review_obj):
+def test_review_update_fail(api_client, review_obj):
     api_client.force_authenticate(review_obj.reviewer)
     response = api_client.patch(
         reverse(
@@ -239,57 +224,16 @@ def test_review_update_as_owner_success(api_client, review_obj):
         {"comment": "UPDATED"},
     )
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == review_obj.pk
-    review_obj.refresh_from_db()
-    assert review_obj.comment == "UPDATED"
-
-
-@pytest.mark.django_db
-def test_review_update_as_foreign_user_fail(api_client, review_obj):
-    api_client.force_authenticate(review_obj.recipient)
-    response = api_client.patch(
-        reverse(
-            "reviews:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk]
-        ),
-        {"comment": "UPDATED"},
-    )
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
-    review_obj.refresh_from_db()
-    assert review_obj.comment != "UPDATED"
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
 # delete
 
 
-def test_review_delete_unauthenticated(api_client, review_obj):
-    response = api_client.delete(
-        reverse("reviews:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk])
-    )
-
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert Review.objects.filter(pk=review_obj.pk).exists()
-
-
-@pytest.mark.django_db
-def test_review_delete_as_owner_success(api_client, review_obj):
+def test_review_delete_fail(api_client, review_obj):
     api_client.force_authenticate(review_obj.reviewer)
     response = api_client.delete(
         reverse("reviews:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk])
     )
 
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Review.objects.filter(pk=review_obj.pk).exists()
-
-
-@pytest.mark.django_db
-def test_review_delete_as_foreign_user_fail(api_client, review_obj):
-    api_client.force_authenticate(review_obj.recipient)
-    response = api_client.delete(
-        reverse("reviews:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk])
-    )
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Review.objects.filter(pk=review_obj.pk).exists()
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED

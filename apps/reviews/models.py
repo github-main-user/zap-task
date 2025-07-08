@@ -2,13 +2,12 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from rest_framework.fields import MaxValueValidator, MinValueValidator
 
-from apps.core.models import TimeStampModel
 from apps.tasks.models import Task
 
 User = get_user_model()
 
 
-class Review(TimeStampModel):
+class Review(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="reviews")
     reviewer = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="given_reviews"
@@ -20,6 +19,7 @@ class Review(TimeStampModel):
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]

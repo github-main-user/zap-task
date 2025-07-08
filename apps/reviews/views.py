@@ -1,20 +1,20 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from apps.tasks.models import Task
 
 from .models import Review
-from .permissions import (
-    IsFreelancerAssignedToTask,
-    IsPartOfTask,
-    IsReviewOwner,
-    IsTaskCompleted,
-)
+from .permissions import IsFreelancerAssignedToTask, IsPartOfTask, IsTaskCompleted
 from .serializers import ReviewSerializer
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
@@ -30,8 +30,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         permissions = [IsAuthenticated]
         if self.action == "create":
             permissions += [IsPartOfTask, IsTaskCompleted, IsFreelancerAssignedToTask]
-        if self.action in ["update", "partial_update", "destroy"]:
-            permissions += [IsReviewOwner]
 
         return [permission() for permission in permissions]
 
