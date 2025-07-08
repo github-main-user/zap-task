@@ -19,3 +19,10 @@ class MeSerializer(serializers.ModelSerializer):
         model = User
         fields = ("id", "email", "first_name", "last_name", "role", "average_rating")
         read_only_fields = ("role", "average_rating")
+
+
+class UserPublicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "email", "first_name", "last_name", "role", "average_rating")
+        read_only_fields = ("role", "average_rating")
