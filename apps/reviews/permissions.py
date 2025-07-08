@@ -3,7 +3,7 @@ from rest_framework.permissions import BasePermission
 from apps.tasks.models import Task
 
 
-class IsPartOfTask(BasePermission):
+class IsUserAssociatedWithTask(BasePermission):
     def has_permission(self, request, view):
         task = view.get_task()
         return request.user in [task.client, task.freelancer]
@@ -21,6 +21,6 @@ class IsFreelancerAssignedToTask(BasePermission):
         return task.freelancer is not None
 
 
-class IsReviewOwner(BasePermission):
+class IsReviewCreator(BasePermission):
     def has_object_permission(self, request, view, review):
         return review.reviewer == request.user

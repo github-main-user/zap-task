@@ -10,9 +10,9 @@ from apps.users.permissions import IsFreelancer
 
 from .models import Proposal, Task
 from .permissions import (
-    IsProposalOwner,
+    IsFreelancerOfProposal,
     IsProposalPending,
-    IsTaskOwner,
+    IsClientOfTask,
 )
 from .serializers import ProposalSerializer
 
@@ -43,12 +43,12 @@ class ProposalViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             permissions += [IsFreelancer, IsTaskOpen]
         elif self.action == "retrieve":
-            permissions += [IsTaskOwner | IsProposalOwner]
+            permissions += [IsClientOfTask | IsFreelancerOfProposal]
         elif self.action in ["update", "partial_update", "destroy"]:
-            permissions += [IsProposalPending, IsProposalOwner]
+            permissions += [IsProposalPending, IsFreelancerOfProposal]
         # custom actions
         elif self.action in ["accept", "reject"]:
-            permissions += [IsProposalPending, IsTaskOwner]
+            permissions += [IsProposalPending, IsClientOfTask]
 
         return [permission() for permission in permissions]
 

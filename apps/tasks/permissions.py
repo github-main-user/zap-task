@@ -18,11 +18,11 @@ class IsTaskPendingReview(BasePermission):
         return task.status == Task.TaskStatus.PENDING_REVIEW
 
 
-class IsTaskOwner(BasePermission):
+class IsClientOfTask(BasePermission):
     def has_object_permission(self, request, view, task):
         return task.client == request.user
 
 
-class IsTaskFreelancer(BasePermission):
+class IsFreelancerOfTask(BasePermission):
     def has_object_permission(self, request, view, task):
         return task.freelancer == request.user

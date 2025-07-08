@@ -8,10 +8,10 @@ from apps.users.permissions import IsClient
 
 from .models import Task
 from .permissions import (
-    IsTaskFreelancer,
+    IsFreelancerOfTask,
     IsTaskInProgress,
     IsTaskOpen,
-    IsTaskOwner,
+    IsClientOfTask,
     IsTaskPendingReview,
 )
 from .serializers import TaskSerializer
@@ -35,16 +35,16 @@ class TaskViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             permissions += [IsClient]
         elif self.action in ["update", "partial_update", "destroy"]:
-            permissions += [IsTaskOpen, IsTaskOwner]
+            permissions += [IsTaskOpen, IsClientOfTask]
         # custom actions
         elif self.action == "start":
-            permissions += [IsTaskOpen, IsTaskFreelancer]
+            permissions += [IsTaskOpen, IsFreelancerOfTask]
         elif self.action == "submit":
-            permissions += [IsTaskInProgress, IsTaskFreelancer]
+            permissions += [IsTaskInProgress, IsFreelancerOfTask]
         elif self.action in ["approve_submission", "reject_submission"]:
-            permissions += [IsTaskPendingReview, IsTaskOwner]
+            permissions += [IsTaskPendingReview, IsClientOfTask]
         elif self.action == "cancel":
-            permissions += [IsTaskOpen, IsTaskFreelancer | IsTaskOwner]
+            permissions += [IsTaskOpen, IsFreelancerOfTask | IsClientOfTask]
 
         return [permission() for permission in permissions]
 

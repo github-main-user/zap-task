@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.tasks.models import Task
 
 from .models import Review
-from .permissions import IsFreelancerAssignedToTask, IsPartOfTask, IsTaskCompleted
+from .permissions import IsFreelancerAssignedToTask, IsTaskCompleted, IsUserAssociatedWithTask
 from .serializers import ReviewSerializer
 
 
@@ -38,7 +38,11 @@ class ReviewViewSet(
     def get_permissions(self):
         permissions = [IsAuthenticated]
         if self.action == "create":
-            permissions += [IsPartOfTask, IsTaskCompleted, IsFreelancerAssignedToTask]
+            permissions += [
+                IsUserAssociatedWithTask,
+                IsTaskCompleted,
+                IsFreelancerAssignedToTask,
+            ]
 
         return [permission() for permission in permissions]
 

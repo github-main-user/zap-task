@@ -10,12 +10,12 @@ class IsProposalPending(BasePermission):
         return proposal.status == Proposal.ProposalStatus.PENDING
 
 
-class IsProposalOwner(BasePermission):
+class IsFreelancerOfProposal(BasePermission):
     def has_object_permission(self, request, view, proposal):
         return proposal.freelancer == request.user
 
 
-class IsTaskOwner(BasePermission):
+class IsClientOfTask(BasePermission):
     def has_object_permission(self, request, view, proposal):
         task = view.get_task()
         return task.client == request.user
