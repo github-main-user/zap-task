@@ -1,15 +1,21 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import filters, mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from apps.tasks.models import Task
 
 from .models import Review
-from .permissions import IsFreelancerAssignedToTask, IsTaskCompleted, IsUserAssociatedWithTask
+from .permissions import (
+    IsFreelancerAssignedToTask,
+    IsTaskCompleted,
+    IsUserAssociatedWithTask,
+)
 from .serializers import ReviewSerializer
 
 
+@extend_schema(tags=["Reviews"])
 class ReviewViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -26,6 +32,31 @@ class ReviewViewSet(
     filterset_fields = ["reviewer", "recipient"]
     search_fields = ["comment"]
     ordering_fields = ["created_at", "rating"]
+
+    @extend_schema(
+        summary="List reviews for a specific task",
+        description="Retrieves a list of reviews associated with a specific task. "
+        "Accessible by authenticated users.",
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Retrieve a review for a specific task",
+        description="Retrieves the details of a specific review associated with a "
+        "task. Accessible by authenticated users.",
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Create a review for a task",
+        description="Allows an authenticated user to create a review for a completed "
+        "task. Only the client or freelancer associated with the task can create a "
+        "review.",
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
     def get_task(self):
         if not hasattr(self, "_task"):
