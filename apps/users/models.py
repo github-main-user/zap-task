@@ -18,6 +18,7 @@ class User(AbstractUser, TimeStampModel):
     role = models.CharField(
         max_length=10, choices=UserRole.choices, default=UserRole.CLIENT
     )
+    average_rating = models.FloatField(default=0.0)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
