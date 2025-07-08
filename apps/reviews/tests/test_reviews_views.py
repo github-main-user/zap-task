@@ -25,13 +25,13 @@ def test_review_list_unauthenticated(api_client, task_obj, review_obj):
 
 
 @pytest.mark.django_db
-def test_review_list_success(api_client, task_obj, review_obj):
-    api_client.force_authenticate(task_obj.client)
-    response = api_client.get(reverse("tasks:task-reviews-list", args=[task_obj.pk]))
+def test_review_list_success(api_client, reviews):
+    api_client.force_authenticate(reviews[0].task.client)
+    response = api_client.get(reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data.get("results") is not None
-    assert response.data.get("count") == task_obj.reviews.count()
+    assert response.data.get("count") == 2 # Only two reviews for the first task_obj
 
 
 @pytest.mark.django_db
@@ -41,6 +41,97 @@ def test_review_list_task_not_found(api_client, client_user):
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert "results" not in response.data
+
+
+@pytest.mark.django_db
+def test_review_list_filter_by_reviewer(api_client, reviews, client_user):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]),
+        {"reviewer": client_user.pk},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 1
+    assert response.data.get("results")[0]["reviewer"] == client_user.pk
+
+
+@pytest.mark.django_db
+def test_review_list_filter_by_recipient(api_client, reviews, freelancer_user):
+    api_client.force_authenticate(reviews[0].task.client)
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]),
+        {"recipient": freelancer_user.pk},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 1
+    assert response.data.get("results")[0]["recipient"] == freelancer_user.pk
+
+
+@pytest.mark.django_db
+def test_review_list_search_by_comment(api_client, reviews):
+    api_client.force_authenticate(reviews[0].task.client)
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]),
+        {"search": "Excellent work!"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 1
+    assert response.data.get("results")[0]["comment"] == "Excellent work!"
+
+
+@pytest.mark.django_db
+def test_review_list_order_by_rating_desc(api_client, reviews):
+    api_client.force_authenticate(reviews[0].task.client)
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]),
+        {"ordering": "-rating"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    ratings = [review_data["rating"] for review_data in response.data.get("results")]
+    assert ratings == sorted(ratings, reverse=True)
+
+
+@pytest.mark.django_db
+def test_review_list_order_by_rating_asc(api_client, reviews):
+    api_client.force_authenticate(reviews[0].task.client)
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]),
+        {"ordering": "rating"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    ratings = [review_data["rating"] for review_data in response.data.get("results")]
+    assert ratings == sorted(ratings)
+
+
+@pytest.mark.django_db
+def test_review_list_order_by_created_at_desc(api_client, reviews):
+    api_client.force_authenticate(reviews[0].task.client)
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]),
+        {"ordering": "-created_at"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    created_at_list = [review_data["created_at"] for review_data in response.data.get("results")]
+    assert created_at_list == sorted(created_at_list, reverse=True)
+
+
+@pytest.mark.django_db
+def test_review_list_order_by_created_at_asc(api_client, reviews):
+    api_client.force_authenticate(reviews[0].task.client)
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]),
+        {"ordering": "created_at"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    created_at_list = [review_data["created_at"] for review_data in response.data.get("results")]
+    assert created_at_list == sorted(created_at_list)
 
 
 # create

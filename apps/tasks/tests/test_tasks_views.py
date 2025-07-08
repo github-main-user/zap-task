@@ -33,6 +33,92 @@ def test_task_list_success(api_client, client_user, tasks):
     assert "results" in response.data
 
 
+@pytest.mark.django_db
+def test_task_list_filter_by_status(api_client, client_user, tasks):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-list"), {"status": Task.TaskStatus.OPEN}
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 2  # Two open tasks in conftest
+    for task_data in response.data.get("results"):
+        assert task_data["status"] == Task.TaskStatus.OPEN
+
+
+@pytest.mark.django_db
+def test_task_list_filter_by_client(api_client, client_user, tasks):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(reverse("tasks:task-list"), {"client": client_user.pk})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 5  # Five tasks created by client_user
+    for task_data in response.data.get("results"):
+        assert task_data["client"] == client_user.pk
+
+
+@pytest.mark.django_db
+def test_task_list_filter_by_freelancer(
+    api_client, client_user, freelancer_user, tasks
+):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-list"), {"freelancer": freelancer_user.pk}
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        len(response.data.get("results")) == 3
+    )  # Three tasks assigned to freelancer_user
+    for task_data in response.data.get("results"):
+        assert task_data["freelancer"] == freelancer_user.pk
+
+
+@pytest.mark.django_db
+def test_task_list_search_by_title(api_client, client_user, tasks):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(reverse("tasks:task-list"), {"search": "Open Task 1"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 1
+    assert response.data.get("results")[0]["title"] == "Open Task 1"
+
+
+@pytest.mark.django_db
+def test_task_list_search_by_description(api_client, client_user, tasks):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-list"), {"search": "Description for in progress task 2"}
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 1
+    assert (
+        response.data.get("results")[0]["description"]
+        == "Description for in progress task 2"
+    )
+
+
+@pytest.mark.django_db
+def test_task_list_order_by_price_desc(api_client, client_user, tasks):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(reverse("tasks:task-list"), {"ordering": "-price"})
+
+    assert response.status_code == status.HTTP_200_OK
+    prices = [float(task_data["price"]) for task_data in response.data.get("results")]
+    assert prices == sorted(prices, reverse=True)
+
+
+@pytest.mark.django_db
+def test_task_list_order_by_deadline_asc(api_client, client_user, tasks):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(reverse("tasks:task-list"), {"ordering": "deadline"})
+
+    assert response.status_code == status.HTTP_200_OK
+    deadlines = [task_data["deadline"] for task_data in response.data.get("results")]
+    assert deadlines == sorted(deadlines)
+
+
 # create
 
 
@@ -472,3 +558,4 @@ def test_task_cancel_not_open_fail(api_client, client_user, freelancer_user, tas
     assert "id" not in response.data
     task_obj.refresh_from_db()
     assert task_obj.status == Task.TaskStatus.COMPLETED
+

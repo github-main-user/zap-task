@@ -27,15 +27,85 @@ def test_proposal_list_unauthenticated(api_client, proposal_obj):
 
 
 @pytest.mark.django_db
-def test_proposal_list_success(api_client, client_user, proposal_obj):
+def test_proposal_list_success(api_client, client_user, proposals):
     api_client.force_authenticate(client_user)
     response = api_client.get(
-        reverse("tasks:task-proposals-list", args=[proposal_obj.task.pk])
+        reverse("tasks:task-proposals-list", args=[proposals[0].task.pk])
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("count") == 1
+    assert response.data.get("count") == len(proposals)
     assert "results" in response.data
+
+
+@pytest.mark.django_db
+def test_proposal_list_filter_by_status(api_client, client_user, proposals):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-proposals-list", args=[proposals[0].task.pk]),
+        {"status": Proposal.ProposalStatus.PENDING},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 3
+    for proposal_data in response.data.get("results"):
+        assert proposal_data["status"] == Proposal.ProposalStatus.PENDING
+
+
+@pytest.mark.django_db
+def test_proposal_list_filter_by_freelancer(api_client, client_user, proposals, freelancer_user):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-proposals-list", args=[proposals[0].task.pk]),
+        {"freelancer": freelancer_user.pk},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 1
+    for proposal_data in response.data.get("results"):
+        assert proposal_data["freelancer"] == freelancer_user.pk
+
+
+@pytest.mark.django_db
+def test_proposal_list_search_by_message(api_client, client_user, proposals):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-proposals-list", args=[proposals[0].task.pk]),
+        {"search": "Pending proposal 1"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data.get("results")) == 1
+    assert (
+        response.data.get("results")[0]["message"]
+        == "Pending proposal 1"
+    )
+
+
+@pytest.mark.django_db
+def test_proposal_list_order_by_created_at_desc(api_client, client_user, proposals):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-proposals-list", args=[proposals[0].task.pk]),
+        {"ordering": "-created_at"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    created_at_list = [proposal_data["created_at"] for proposal_data in response.data.get("results")]
+    assert created_at_list == sorted(created_at_list, reverse=True)
+
+
+@pytest.mark.django_db
+def test_proposal_list_order_by_created_at_asc(api_client, client_user, proposals):
+    api_client.force_authenticate(client_user)
+    response = api_client.get(
+        reverse("tasks:task-proposals-list", args=[proposals[0].task.pk]),
+        {"ordering": "created_at"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    created_at_list = [proposal_data["created_at"] for proposal_data in response.data.get("results")]
+    assert created_at_list == sorted(created_at_list)
 
 
 # create
