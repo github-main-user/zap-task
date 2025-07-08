@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from apps.tasks.models import Task
@@ -17,6 +18,14 @@ class ReviewViewSet(
 ):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ["reviewer", "recipient"]
+    search_fields = ["comment"]
+    ordering_fields = ["created_at", "rating"]
 
     def get_task(self):
         if not hasattr(self, "_task"):
