@@ -53,7 +53,9 @@ def test_proposal_list_filter_by_status(api_client, client_user, proposals):
 
 
 @pytest.mark.django_db
-def test_proposal_list_filter_by_freelancer(api_client, client_user, proposals, freelancer_user):
+def test_proposal_list_filter_by_freelancer(
+    api_client, client_user, proposals, freelancer_user
+):
     api_client.force_authenticate(client_user)
     response = api_client.get(
         reverse("tasks:task-proposals-list", args=[proposals[0].task.pk]),
@@ -76,10 +78,7 @@ def test_proposal_list_search_by_message(api_client, client_user, proposals):
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data.get("results")) == 1
-    assert (
-        response.data.get("results")[0]["message"]
-        == "Pending proposal 1"
-    )
+    assert response.data.get("results")[0]["message"] == "Pending proposal 1"
 
 
 @pytest.mark.django_db
@@ -91,7 +90,9 @@ def test_proposal_list_order_by_created_at_desc(api_client, client_user, proposa
     )
 
     assert response.status_code == status.HTTP_200_OK
-    created_at_list = [proposal_data["created_at"] for proposal_data in response.data.get("results")]
+    created_at_list = [
+        proposal_data["created_at"] for proposal_data in response.data.get("results")
+    ]
     assert created_at_list == sorted(created_at_list, reverse=True)
 
 
@@ -104,7 +105,9 @@ def test_proposal_list_order_by_created_at_asc(api_client, client_user, proposal
     )
 
     assert response.status_code == status.HTTP_200_OK
-    created_at_list = [proposal_data["created_at"] for proposal_data in response.data.get("results")]
+    created_at_list = [
+        proposal_data["created_at"] for proposal_data in response.data.get("results")
+    ]
     assert created_at_list == sorted(created_at_list)
 
 
@@ -230,11 +233,8 @@ def test_proposal_retrieve_as_proposal_owner_success(
 
 
 @pytest.mark.django_db
-def test_proposal_retrieve_as_foreign_user_fail(api_client, proposal_obj):
-    temp_user = User.objects.create_user(
-        email="email@email.com", password="password", role=User.UserRole.CLIENT
-    )
-    api_client.force_authenticate(temp_user)
+def test_proposal_retrieve_as_random_user_fail(api_client, proposal_obj, random_user):
+    api_client.force_authenticate(random_user)
     response = api_client.get(
         reverse(
             "tasks:task-proposals-detail",
@@ -293,8 +293,8 @@ def test_proposal_update_as_owner_success(api_client, freelancer_user, proposal_
 
 
 @pytest.mark.django_db
-def test_proposal_update_as_foreign_user_fail(api_client, client_user, proposal_obj):
-    api_client.force_authenticate(client_user)
+def test_proposal_update_as_random_user_fail(api_client, random_user, proposal_obj):
+    api_client.force_authenticate(random_user)
     response = api_client.patch(
         reverse(
             "tasks:task-proposals-detail",
@@ -336,9 +336,7 @@ def test_proposal_update_status_is_not_pending_fail(
 @pytest.mark.django_db
 def test_proposal_delete_not_found(api_client, freelancer_user):
     api_client.force_authenticate(freelancer_user)
-    response = api_client.delete(
-        reverse("tasks:task-proposals-detail", args=[0, 0])
-    )
+    response = api_client.delete(reverse("tasks:task-proposals-detail", args=[0, 0]))
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -370,8 +368,8 @@ def test_proposal_delete_as_owner_success(api_client, freelancer_user, proposal_
 
 
 @pytest.mark.django_db
-def test_proposal_delete_as_foreign_user_fail(api_client, client_user, proposal_obj):
-    api_client.force_authenticate(client_user)
+def test_proposal_delete_as_random_user_fail(api_client, random_user, proposal_obj):
+    api_client.force_authenticate(random_user)
     response = api_client.delete(
         reverse(
             "tasks:task-proposals-detail",
@@ -423,10 +421,8 @@ def test_proposal_accept_as_proposal_task_owner_success(
 
 
 @pytest.mark.django_db
-def test_proposal_accept_as_foreign_user_fail(
-    api_client, freelancer_user, proposal_obj
-):
-    api_client.force_authenticate(freelancer_user)
+def test_proposal_accept_as_random_user_fail(api_client, random_user, proposal_obj):
+    api_client.force_authenticate(random_user)
     response = api_client.post(
         reverse(
             "tasks:task-proposals-accept",
@@ -484,10 +480,8 @@ def test_proposal_reject_as_proposal_task_owner_success(
 
 
 @pytest.mark.django_db
-def test_proposal_reject_as_foreign_user_fail(
-    api_client, freelancer_user, proposal_obj
-):
-    api_client.force_authenticate(freelancer_user)
+def test_proposal_reject_as_random_user_fail(api_client, random_user, proposal_obj):
+    api_client.force_authenticate(random_user)
     response = api_client.post(
         reverse(
             "tasks:task-proposals-reject",

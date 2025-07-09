@@ -239,8 +239,8 @@ def test_task_update_as_owner_success(api_client, client_user, task_obj):
 
 
 @pytest.mark.django_db
-def test_task_update_as_foreign_user_fail(api_client, freelancer_user, task_obj):
-    api_client.force_authenticate(freelancer_user)
+def test_task_update_as_random_user_fail(api_client, random_user, task_obj):
+    api_client.force_authenticate(random_user)
     response = api_client.patch(
         reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
     )
@@ -294,8 +294,8 @@ def test_task_delete_as_owner_success(api_client, client_user, task_obj):
 
 
 @pytest.mark.django_db
-def test_task_delete_as_foreign_user_fail(api_client, freelancer_user, task_obj):
-    api_client.force_authenticate(freelancer_user)
+def test_task_delete_as_random_user_fail(api_client, random_user, task_obj):
+    api_client.force_authenticate(random_user)
     response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -331,10 +331,10 @@ def test_task_start_as_freelancer_success(api_client, freelancer_user, task_obj)
 
 
 @pytest.mark.django_db
-def test_task_start_as_foreign_freelancer_fail(api_client, freelancer_user, task_obj):
+def test_task_start_as_random_freelancer_fail(api_client, random_user, task_obj):
     task_obj.status = Task.TaskStatus.OPEN
     task_obj.save()
-    api_client.force_authenticate(freelancer_user)
+    api_client.force_authenticate(random_user)
     response = api_client.post(reverse("tasks:task-start", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -375,10 +375,10 @@ def test_task_submit_as_freelancer_success(api_client, freelancer_user, task_obj
 
 
 @pytest.mark.django_db
-def test_task_submit_as_foreign_freelancer_fail(api_client, freelancer_user, task_obj):
+def test_task_submit_as_random_freelancer_fail(api_client, random_user, task_obj):
     task_obj.status = Task.TaskStatus.IN_PROGRESS
     task_obj.save()
-    api_client.force_authenticate(freelancer_user)
+    api_client.force_authenticate(random_user)
     response = api_client.post(reverse("tasks:task-submit", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -423,12 +423,10 @@ def test_task_approve_submission_as_task_client_success(
 
 
 @pytest.mark.django_db
-def test_task_approve_submission_as_foreign_user_fail(
-    api_client, freelancer_user, task_obj
-):
+def test_task_approve_submission_as_random_user_fail(api_client, random_user, task_obj):
     task_obj.status = Task.TaskStatus.PENDING_REVIEW
     task_obj.save()
-    api_client.force_authenticate(freelancer_user)
+    api_client.force_authenticate(random_user)
     response = api_client.post(
         reverse("tasks:task-approve-submission", args=[task_obj.pk])
     )
@@ -479,12 +477,10 @@ def test_task_reject_submission_as_task_client_success(
 
 
 @pytest.mark.django_db
-def test_task_reject_submission_as_foreign_user_fail(
-    api_client, freelancer_user, task_obj
-):
+def test_task_reject_submission_as_random_user_fail(api_client, random_user, task_obj):
     task_obj.status = Task.TaskStatus.PENDING_REVIEW
     task_obj.save()
-    api_client.force_authenticate(freelancer_user)
+    api_client.force_authenticate(random_user)
     response = api_client.post(
         reverse("tasks:task-reject-submission", args=[task_obj.pk])
     )
@@ -547,10 +543,10 @@ def test_task_cancel_as_task_freelancer_success(api_client, freelancer_user, tas
 
 
 @pytest.mark.django_db
-def test_task_cancel_as_foreign_freelancer_fail(api_client, freelancer_user, task_obj):
+def test_task_cancel_as_random_freelancer_fail(api_client, random_user, task_obj):
     task_obj.status = Task.TaskStatus.OPEN
     task_obj.save()
-    api_client.force_authenticate(freelancer_user)
+    api_client.force_authenticate(random_user)
     response = api_client.post(reverse("tasks:task-cancel", args=[task_obj.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN

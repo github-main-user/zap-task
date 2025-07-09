@@ -27,11 +27,13 @@ def test_review_list_unauthenticated(api_client, task_obj, review_obj):
 @pytest.mark.django_db
 def test_review_list_success(api_client, reviews):
     api_client.force_authenticate(reviews[0].task.client)
-    response = api_client.get(reverse("tasks:task-reviews-list", args=[reviews[0].task.pk]))
+    response = api_client.get(
+        reverse("tasks:task-reviews-list", args=[reviews[0].task.pk])
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data.get("results") is not None
-    assert response.data.get("count") == 2 # Only two reviews for the first task_obj
+    assert response.data.get("count") == 2  # Only two reviews for the first task_obj
 
 
 @pytest.mark.django_db
@@ -117,7 +119,9 @@ def test_review_list_order_by_created_at_desc(api_client, reviews):
     )
 
     assert response.status_code == status.HTTP_200_OK
-    created_at_list = [review_data["created_at"] for review_data in response.data.get("results")]
+    created_at_list = [
+        review_data["created_at"] for review_data in response.data.get("results")
+    ]
     assert created_at_list == sorted(created_at_list, reverse=True)
 
 
@@ -130,7 +134,9 @@ def test_review_list_order_by_created_at_asc(api_client, reviews):
     )
 
     assert response.status_code == status.HTTP_200_OK
-    created_at_list = [review_data["created_at"] for review_data in response.data.get("results")]
+    created_at_list = [
+        review_data["created_at"] for review_data in response.data.get("results")
+    ]
     assert created_at_list == sorted(created_at_list)
 
 
@@ -220,22 +226,19 @@ def test_review_create_task_is_not_completed_fail(
 
 @pytest.mark.django_db
 def test_review_create_as_random_user_fail(
-    api_client, task_obj, freelancer_user, review_data
+    api_client, freelancer_user, random_user, task_obj, review_data
 ):
-    new_user = User.objects.create_user(
-        email="new@user.com", password="pass", role=User.UserRole.CLIENT
-    )
     task_obj.status = Task.TaskStatus.COMPLETED
     task_obj.freelancer = freelancer_user
     task_obj.save()
-    api_client.force_authenticate(new_user)
+    api_client.force_authenticate(random_user)
     response = api_client.post(
         reverse("tasks:task-reviews-list", args=[task_obj.pk]), review_data
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert not "id" in response.data
-    assert not Review.objects.filter(reviewer=new_user).exists()
+    assert not Review.objects.filter(reviewer=random_user).exists()
 
 
 @pytest.mark.django_db
@@ -290,11 +293,8 @@ def test_review_retrieve_as_recipient_success(api_client, review_obj):
 
 
 @pytest.mark.django_db
-def test_review_retrieve_as_random_user_success(api_client, review_obj):
-    new_user = User.objects.create_user(
-        email="new@user.com", password="pass", role=User.UserRole.CLIENT
-    )
-    api_client.force_authenticate(new_user)
+def test_review_retrieve_as_random_user_success(api_client, review_obj, random_user):
+    api_client.force_authenticate(random_user)
     response = api_client.get(
         reverse("tasks:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk])
     )
@@ -309,9 +309,7 @@ def test_review_retrieve_as_random_user_success(api_client, review_obj):
 def test_review_update_fail(api_client, review_obj):
     api_client.force_authenticate(review_obj.reviewer)
     response = api_client.patch(
-        reverse(
-            "tasks:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk]
-        ),
+        reverse("tasks:task-reviews-detail", args=[review_obj.task.pk, review_obj.pk]),
         {"comment": "UPDATED"},
     )
 
@@ -328,3 +326,4 @@ def test_review_delete_fail(api_client, review_obj):
     )
 
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+

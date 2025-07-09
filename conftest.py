@@ -28,6 +28,13 @@ def freelancer_user(db):
 
 
 @pytest.fixture
+def random_user(db):
+    return User.objects.create_user(
+        "random@random.com", "pass", role=User.UserRole.CLIENT
+    )
+
+
+@pytest.fixture
 def task_data():
     return {
         "title": "new_task",
