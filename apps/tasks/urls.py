@@ -4,10 +4,10 @@ from rest_framework_nested.routers import NestedDefaultRouter
 from apps.proposals.views import ProposalViewSet
 from apps.reviews.views import ReviewViewSet
 
-from .apps import TasksConfig
 from .views import TaskViewSet
 
-app_name = TasksConfig.name
+app_name = "tasks"
+
 
 tasks_router = DefaultRouter()
 tasks_router.register("", TaskViewSet, "task")
