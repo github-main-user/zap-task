@@ -147,7 +147,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def reject_submission(self, *args, **kwargs):
         task = self.get_object()
-        task.start()
+        task.reject()
         return Response(self.get_serializer(task).data)
 
     @extend_schema(

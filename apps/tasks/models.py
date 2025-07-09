@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from apps.core.exceptions import InvalidStateTransition
 from apps.core.models import TimeStampModel
 
 User = get_user_model()
@@ -55,18 +56,51 @@ class Task(TimeStampModel):
     def __str__(self) -> str:
         return f"Task #{self.pk} '{self.title}' [{self.status}]"
 
-    def start(self):
+    def start(self) -> None:
+        if self.status != self.TaskStatus.OPEN:
+            raise InvalidStateTransition(
+                f'Cannot start a task that is in "{self.status}" state.'
+            )
+        if not self.freelancer:
+            raise InvalidStateTransition(
+                "Cannot start a task without an assigned freelancer."
+            )
+
         self.status = self.TaskStatus.IN_PROGRESS
         self.save()
 
-    def begin_review(self):
+    def begin_review(self) -> None:
+        if self.status != self.TaskStatus.IN_PROGRESS:
+            raise InvalidStateTransition(
+                f'Cannot begin review for a task that is in "{self.status}" state.'
+            )
+
         self.status = self.TaskStatus.PENDING_REVIEW
         self.save()
 
-    def complete(self):
+    def complete(self) -> None:
+        if self.status != self.TaskStatus.PENDING_REVIEW:
+            raise InvalidStateTransition(
+                f'Cannot complete a task that is in "{self.status}" state.'
+            )
+
         self.status = self.TaskStatus.COMPLETED
         self.save()
 
-    def cancel(self):
+    def reject(self) -> None:
+        if self.status != self.TaskStatus.PENDING_REVIEW:
+            raise InvalidStateTransition(
+                f'Cannot reject a task that is in "{self.status}" state.'
+            )
+
+        self.status = self.TaskStatus.IN_PROGRESS
+        self.save()
+
+    def cancel(self) -> None:
+        if self.status != self.TaskStatus.OPEN:
+            raise InvalidStateTransition(
+                f"Cannot cancel a task that is in {self.status} state."
+            )
+
         self.status = self.TaskStatus.CANCELED
         self.save()
