@@ -18,11 +18,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ("task", "reviewer", "recipient", "created_at")
 
     def validate(self, attrs):
-        if self.instance is None:  # validation only on create
+        """
+        Validates that one user can have only one review per task.
+        Validates it only on create.
+        """
+
+        if self.instance is None:
             task = self.context["task"]
             request = self.context["request"]
             if Review.objects.filter(task=task, reviewer=request.user).exists():
                 raise serializers.ValidationError(
                     "You've already submitted a review for this task."
                 )
+
         return attrs

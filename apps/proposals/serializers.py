@@ -18,7 +18,13 @@ class ProposalSerializer(serializers.ModelSerializer):
         read_only_fields = ("task", "freelancer", "status", "created_at", "updated_at")
 
     def validate(self, attrs):
-        if self.instance is None:  # validation only on create
+        """
+        Validates that one user can have only one proposal per task.
+        Validates it only on create.
+        After validation task and freelancer objects being saved to attributes.
+        """
+
+        if self.instance is None:
             task = self.context["task"]
             freelancer = self.context["freelancer"]
 
