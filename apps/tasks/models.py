@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
 
 from apps.core.models import TimeStampModel
 
@@ -15,15 +15,26 @@ class Task(TimeStampModel):
         COMPLETED = "completed", "Completed"
         CANCELED = "canceled", "Canceled"
 
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    deadline = models.DateTimeField()
+    title = models.CharField(max_length=200, help_text="Title of the task.")
+    description = models.TextField(help_text="Detailed description of the task.")
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        help_text="Price for the task.",
+    )
+    deadline = models.DateTimeField(help_text="Deadline for the task.")
     status = models.CharField(
-        max_length=15, choices=TaskStatus.choices, default=TaskStatus.OPEN
+        max_length=15,
+        choices=TaskStatus.choices,
+        default=TaskStatus.OPEN,
+        help_text="Current status of the task.",
     )
     client = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="client_tasks"
+        User,
+        on_delete=models.CASCADE,
+        related_name="client_tasks",
+        help_text="User who created the task.",
     )
     freelancer = models.ForeignKey(
         User,
@@ -31,6 +42,7 @@ class Task(TimeStampModel):
         related_name="freelancer_tasks",
         null=True,
         blank=True,
+        help_text="User who is assigned to the task.",
     )
 
     class Meta:

@@ -14,11 +14,16 @@ class User(AbstractUser, TimeStampModel):
     username = None
     date_joined = None
 
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, help_text="Email address of the user.")
     role = models.CharField(
-        max_length=10, choices=UserRole.choices, default=UserRole.CLIENT
+        max_length=10,
+        choices=UserRole.choices,
+        default=UserRole.CLIENT,
+        help_text="Role of the user.",
     )
-    average_rating = models.FloatField(default=0.0)
+    average_rating = models.FloatField(
+        default=0.0, help_text="Average rating of the user."
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

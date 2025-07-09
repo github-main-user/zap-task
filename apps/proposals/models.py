@@ -13,13 +13,24 @@ class Proposal(TimeStampModel):
         ACCEPTED = "accepted", "Accepted"
         REJECTED = "rejected", "Rejected"
 
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="proposals")
-    message = models.TextField(blank=True)
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="proposals",
+        help_text="Task for which the proposal is made.",
+    )
+    message = models.TextField(blank=True, help_text="Proposal message.")
     freelancer = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="proposals"
+        User,
+        on_delete=models.CASCADE,
+        related_name="proposals",
+        help_text="Freelancer who made the proposal.",
     )
     status = models.CharField(
-        max_length=8, choices=ProposalStatus.choices, default=ProposalStatus.PENDING
+        max_length=8,
+        choices=ProposalStatus.choices,
+        default=ProposalStatus.PENDING,
+        help_text="Current status of the proposal.",
     )
 
     class Meta:
