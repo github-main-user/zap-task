@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+*.pyo
+*.pyd
+.Python
+
+# Django
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# Envs
+.env
+*.env
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Git
+.git
+.gitignore
+
+# Venv
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.o
+*.a
+
+# Build
+build/
+dist/
+*.log
+
+# celery
+celerybeat-schedule
+
