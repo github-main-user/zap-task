@@ -11,6 +11,20 @@ User = get_user_model()
 
 
 @pytest.fixture
+def proposal_factory(db, task_obj, freelancer_user):
+    def _proposal_factory(**kwargs):
+        defaults = {
+            "task": task_obj,
+            "freelancer": freelancer_user,
+            "message": "Test proposal message",
+            "status": Proposal.ProposalStatus.PENDING,
+        }
+        defaults.update(kwargs)
+        return Proposal.objects.create(**defaults)
+    return _proposal_factory
+
+
+@pytest.fixture
 def proposal_data():
     return {"message": "Proposal Message"}
 

@@ -35,6 +35,19 @@ def random_user(db):
 
 
 @pytest.fixture
+def user_factory(db):
+    def _user_factory(**kwargs):
+        defaults = {
+            "email": "test@example.com",
+            "password": "password",
+            "role": User.UserRole.CLIENT,
+        }
+        defaults.update(kwargs)
+        return User.objects.create_user(**defaults)
+    return _user_factory
+
+
+@pytest.fixture
 def task_data():
     return {
         "title": "new_task",
