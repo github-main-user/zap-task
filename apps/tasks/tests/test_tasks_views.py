@@ -184,20 +184,22 @@ def test_task_retrieve_not_found(api_client, client_user):
     assert "id" not in response.data
 
 
-def test_task_retrieve_unauthenticated(api_client, task_obj):
-    response = api_client.get(reverse("tasks:task-detail", args=[task_obj.pk]))
+def test_task_retrieve_unauthenticated(api_client, task_factory):
+    task = task_factory()
+    response = api_client.get(reverse("tasks:task-detail", args=[task.pk]))
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert "id" not in response.data
 
 
 @pytest.mark.django_db
-def test_task_retrieve_success(api_client, client_user, task_obj):
+def test_task_retrieve_success(api_client, client_user, task_factory):
+    task = task_factory()
     api_client.force_authenticate(client_user)
-    response = api_client.get(reverse("tasks:task-detail", args=[task_obj.pk]))
+    response = api_client.get(reverse("tasks:task-detail", args=[task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
+    assert response.data.get("id") == task.pk
 
 
 # update
@@ -214,56 +216,58 @@ def test_task_update_not_found(api_client, client_user):
     assert "id" not in response.data
 
 
-def test_task_update_unauthenticated(api_client, task_obj):
+def test_task_update_unauthenticated(api_client, task_factory):
+    task = task_factory()
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.title != "UPDATED"
+    task.refresh_from_db()
+    assert task.title != "UPDATED"
 
 
 @pytest.mark.django_db
-def test_task_update_as_owner_success(api_client, client_user, task_obj):
+def test_task_update_as_owner_success(api_client, client_user, task_factory):
+    task = task_factory()
     api_client.force_authenticate(client_user)
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
-    task_obj.refresh_from_db()
-    assert task_obj.title == "UPDATED"
+    assert response.data.get("id") == task.pk
+    task.refresh_from_db()
+    assert task.title == "UPDATED"
 
 
 @pytest.mark.django_db
-def test_task_update_as_random_user_fail(api_client, random_user, task_obj):
+def test_task_update_as_random_user_fail(api_client, random_user, task_factory):
+    task = task_factory()
     api_client.force_authenticate(random_user)
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert not task_obj.title == "UPDATED"
+    task.refresh_from_db()
+    assert not task.title == "UPDATED"
 
 
 @pytest.mark.django_db
-def test_task_update_status_is_not_open_fail(api_client, client_user, task_obj):
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+def test_task_update_status_is_not_open_fail(api_client, client_user, task_factory):
+    task = task_factory(status=Task.TaskStatus.COMPLETED)
     api_client.force_authenticate(client_user)
     response = api_client.patch(
-        reverse("tasks:task-detail", args=[task_obj.pk]), {"title": "UPDATED"}
+        reverse("tasks:task-detail", args=[task.pk]), {"title": "UPDATED"}
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert not task_obj.title == "UPDATED"
+    task.refresh_from_db()
+    assert not task.title == "UPDATED"
 
 
 # delete
@@ -277,128 +281,122 @@ def test_task_delete_not_found(api_client, client_user):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_task_delete_unauthenticated(api_client, task_obj):
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
+def test_task_delete_unauthenticated(api_client, task_factory):
+    task = task_factory()
+    response = api_client.delete(reverse("tasks:task-detail", args=[task.pk]))
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert Task.objects.filter(pk=task_obj.pk).exists()
+    assert Task.objects.filter(pk=task.pk).exists()
 
 
 @pytest.mark.django_db
-def test_task_delete_as_owner_success(api_client, client_user, task_obj):
+def test_task_delete_as_owner_success(api_client, client_user, task_factory):
+    task = task_factory()
     api_client.force_authenticate(client_user)
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
+    response = api_client.delete(reverse("tasks:task-detail", args=[task.pk]))
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not Task.objects.filter(pk=task_obj.pk).exists()
+    assert not Task.objects.filter(pk=task.pk).exists()
 
 
 @pytest.mark.django_db
-def test_task_delete_as_random_user_fail(api_client, random_user, task_obj):
+def test_task_delete_as_random_user_fail(api_client, random_user, task_factory):
+    task = task_factory()
     api_client.force_authenticate(random_user)
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
+    response = api_client.delete(reverse("tasks:task-detail", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Task.objects.filter(pk=task_obj.pk).exists()
+    assert Task.objects.filter(pk=task.pk).exists()
 
 
 @pytest.mark.django_db
-def test_task_delete_task_completed_fail(api_client, client_user, task_obj):
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+def test_task_delete_task_completed_fail(api_client, client_user, task_factory):
+    task = task_factory(status=Task.TaskStatus.COMPLETED)
     api_client.force_authenticate(client_user)
-    response = api_client.delete(reverse("tasks:task-detail", args=[task_obj.pk]))
+    response = api_client.delete(reverse("tasks:task-detail", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Task.objects.filter(pk=task_obj.pk).exists()
+    assert Task.objects.filter(pk=task.pk).exists()
 
 
 # start
 
 
 @pytest.mark.django_db
-def test_task_start_as_freelancer_success(api_client, freelancer_user, task_obj):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.OPEN
-    task_obj.save()
+def test_task_start_as_freelancer_success(api_client, freelancer_user, task_factory):
+    task = task_factory(freelancer=freelancer_user)
     api_client.force_authenticate(freelancer_user)
-    response = api_client.post(reverse("tasks:task-start", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-start", args=[task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.IN_PROGRESS
+    assert response.data.get("id") == task.pk
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.IN_PROGRESS
 
 
 @pytest.mark.django_db
-def test_task_start_as_random_freelancer_fail(api_client, random_user, task_obj):
-    task_obj.status = Task.TaskStatus.OPEN
-    task_obj.save()
+def test_task_start_as_random_user_fail(api_client, random_user, task_factory):
+    task = task_factory()
     api_client.force_authenticate(random_user)
-    response = api_client.post(reverse("tasks:task-start", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-start", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.OPEN
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.OPEN
 
 
 @pytest.mark.django_db
-def test_task_start_task_not_open_fail(api_client, freelancer_user, task_obj):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+def test_task_start_task_not_open_fail(api_client, freelancer_user, task_factory):
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
     api_client.force_authenticate(freelancer_user)
-    response = api_client.post(reverse("tasks:task-start", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-start", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.COMPLETED
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.COMPLETED
 
 
 # submit
 
 
 @pytest.mark.django_db
-def test_task_submit_as_freelancer_success(api_client, freelancer_user, task_obj):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.IN_PROGRESS
-    task_obj.save()
+def test_task_submit_as_freelancer_success(api_client, freelancer_user, task_factory):
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.IN_PROGRESS)
     api_client.force_authenticate(freelancer_user)
-    response = api_client.post(reverse("tasks:task-submit", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-submit", args=[task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.PENDING_REVIEW
+    assert response.data.get("id") == task.pk
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.PENDING_REVIEW
 
 
 @pytest.mark.django_db
-def test_task_submit_as_random_freelancer_fail(api_client, random_user, task_obj):
-    task_obj.status = Task.TaskStatus.IN_PROGRESS
-    task_obj.save()
+def test_task_submit_as_random_freelancer_fail(api_client, random_user, task_factory):
+    task = task_factory(status=Task.TaskStatus.IN_PROGRESS)
     api_client.force_authenticate(random_user)
-    response = api_client.post(reverse("tasks:task-submit", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-submit", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.IN_PROGRESS
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.IN_PROGRESS
 
 
 @pytest.mark.django_db
-def test_task_submit_task_not_in_progress_fail(api_client, freelancer_user, task_obj):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+def test_task_submit_task_not_in_progress_fail(
+    api_client, freelancer_user, task_factory
+):
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
     api_client.force_authenticate(freelancer_user)
-    response = api_client.post(reverse("tasks:task-submit", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-submit", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.COMPLETED
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.COMPLETED
 
 
 # approve_submission
@@ -406,53 +404,46 @@ def test_task_submit_task_not_in_progress_fail(api_client, freelancer_user, task
 
 @pytest.mark.django_db
 def test_task_approve_submission_as_task_client_success(
-    api_client, freelancer_user, client_user, task_obj
+    api_client, freelancer_user, client_user, task_factory
 ):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.PENDING_REVIEW
-    task_obj.save()
-    api_client.force_authenticate(client_user)
-    response = api_client.post(
-        reverse("tasks:task-approve-submission", args=[task_obj.pk])
+    task = task_factory(
+        freelancer=freelancer_user, status=Task.TaskStatus.PENDING_REVIEW
     )
+    api_client.force_authenticate(client_user)
+    response = api_client.post(reverse("tasks:task-approve-submission", args=[task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.COMPLETED
+    assert response.data.get("id") == task.pk
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.COMPLETED
 
 
 @pytest.mark.django_db
-def test_task_approve_submission_as_random_user_fail(api_client, random_user, task_obj):
-    task_obj.status = Task.TaskStatus.PENDING_REVIEW
-    task_obj.save()
+def test_task_approve_submission_as_random_user_fail(
+    api_client, random_user, task_factory
+):
+    task = task_factory(status=Task.TaskStatus.PENDING_REVIEW)
     api_client.force_authenticate(random_user)
-    response = api_client.post(
-        reverse("tasks:task-approve-submission", args=[task_obj.pk])
-    )
+    response = api_client.post(reverse("tasks:task-approve-submission", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.PENDING_REVIEW
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.PENDING_REVIEW
 
 
 @pytest.mark.django_db
 def test_task_approve_submission_task_not_pending_review_fail(
-    api_client, freelancer_user, client_user, task_obj
+    api_client, freelancer_user, client_user, task_factory
 ):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
     api_client.force_authenticate(client_user)
-    response = api_client.post(
-        reverse("tasks:task-approve-submission", args=[task_obj.pk])
-    )
+    response = api_client.post(reverse("tasks:task-approve-submission", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.COMPLETED
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.COMPLETED
 
 
 # reject_submission
@@ -460,53 +451,46 @@ def test_task_approve_submission_task_not_pending_review_fail(
 
 @pytest.mark.django_db
 def test_task_reject_submission_as_task_client_success(
-    api_client, freelancer_user, client_user, task_obj
+    api_client, freelancer_user, client_user, task_factory
 ):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.PENDING_REVIEW
-    task_obj.save()
-    api_client.force_authenticate(client_user)
-    response = api_client.post(
-        reverse("tasks:task-reject-submission", args=[task_obj.pk])
+    task = task_factory(
+        freelancer=freelancer_user, status=Task.TaskStatus.PENDING_REVIEW
     )
+    api_client.force_authenticate(client_user)
+    response = api_client.post(reverse("tasks:task-reject-submission", args=[task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.IN_PROGRESS
+    assert response.data.get("id") == task.pk
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.IN_PROGRESS
 
 
 @pytest.mark.django_db
-def test_task_reject_submission_as_random_user_fail(api_client, random_user, task_obj):
-    task_obj.status = Task.TaskStatus.PENDING_REVIEW
-    task_obj.save()
+def test_task_reject_submission_as_random_user_fail(
+    api_client, random_user, task_factory
+):
+    task = task_factory(status=Task.TaskStatus.PENDING_REVIEW)
     api_client.force_authenticate(random_user)
-    response = api_client.post(
-        reverse("tasks:task-reject-submission", args=[task_obj.pk])
-    )
+    response = api_client.post(reverse("tasks:task-reject-submission", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.PENDING_REVIEW
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.PENDING_REVIEW
 
 
 @pytest.mark.django_db
 def test_task_reject_submission_task_not_pending_review_fail(
-    api_client, freelancer_user, client_user, task_obj
+    api_client, freelancer_user, client_user, task_factory
 ):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
     api_client.force_authenticate(client_user)
-    response = api_client.post(
-        reverse("tasks:task-reject-submission", args=[task_obj.pk])
-    )
+    response = api_client.post(reverse("tasks:task-reject-submission", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.COMPLETED
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.COMPLETED
 
 
 # cancel
@@ -514,56 +498,53 @@ def test_task_reject_submission_task_not_pending_review_fail(
 
 @pytest.mark.django_db
 def test_task_cancel_as_task_client_success(
-    api_client, freelancer_user, client_user, task_obj
+    api_client, freelancer_user, client_user, task_factory
 ):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.OPEN
-    task_obj.save()
+    task = task_factory(freelancer=freelancer_user)
     api_client.force_authenticate(client_user)
-    response = api_client.post(reverse("tasks:task-cancel", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-cancel", args=[task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.CANCELED
+    assert response.data.get("id") == task.pk
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.CANCELED
 
 
 @pytest.mark.django_db
-def test_task_cancel_as_task_freelancer_success(api_client, freelancer_user, task_obj):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.OPEN
-    task_obj.save()
+def test_task_cancel_as_task_freelancer_success(
+    api_client, freelancer_user, task_factory
+):
+    task = task_factory(freelancer=freelancer_user)
     api_client.force_authenticate(freelancer_user)
-    response = api_client.post(reverse("tasks:task-cancel", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-cancel", args=[task.pk]))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("id") == task_obj.pk
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.CANCELED
+    assert response.data.get("id") == task.pk
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.CANCELED
 
 
 @pytest.mark.django_db
-def test_task_cancel_as_random_freelancer_fail(api_client, random_user, task_obj):
-    task_obj.status = Task.TaskStatus.OPEN
-    task_obj.save()
+def test_task_cancel_as_random_freelancer_fail(api_client, random_user, task_factory):
+    task = task_factory()
     api_client.force_authenticate(random_user)
-    response = api_client.post(reverse("tasks:task-cancel", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-cancel", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.OPEN
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.OPEN
 
 
 @pytest.mark.django_db
-def test_task_cancel_not_open_fail(api_client, client_user, freelancer_user, task_obj):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+def test_task_cancel_not_open_fail(
+    api_client, client_user, freelancer_user, task_factory
+):
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
     api_client.force_authenticate(client_user)
-    response = api_client.post(reverse("tasks:task-cancel", args=[task_obj.pk]))
+    response = api_client.post(reverse("tasks:task-cancel", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
-    task_obj.refresh_from_db()
-    assert task_obj.status == Task.TaskStatus.COMPLETED
+    task.refresh_from_db()
+    assert task.status == Task.TaskStatus.COMPLETED

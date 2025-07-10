@@ -1,42 +1,23 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from apps.reviews.models import Review
-from apps.tasks.models import Task
-
 User = get_user_model()
 
 
 @pytest.mark.django_db
-def test_update_user_average_rating_on_review_creation():
-    recipient = User.objects.create_user(
-        email="recipient@test.com", password="password"
-    )
-    reviewer1 = User.objects.create_user(
-        email="reviewer1@test.com", password="password"
-    )
-    reviewer2 = User.objects.create_user(
-        email="reviewer2@test.com", password="password"
-    )
+def test_update_user_average_rating_on_review_creation(
+    user_factory, task_factory, review_factory
+):
+    recipient = user_factory(email="recipient@test.com")
+    reviewer1 = user_factory(email="reviewer1@test.com")
+    reviewer2 = user_factory(email="reviewer2@test.com")
 
-    task1 = Task.objects.create(
-        title="Test Task 1",
-        description="Test Description 1",
-        client=recipient,
-        price=100,
-        deadline="2025-12-31T23:59:59Z",
-    )
-    task2 = Task.objects.create(
-        title="Test Task 2",
-        description="Test Description 2",
-        client=recipient,
-        price=200,
-        deadline="2025-12-31T23:59:59Z",
-    )
+    task1 = task_factory(client=recipient)
+    task2 = task_factory(client=recipient)
 
     assert recipient.average_rating == 0.0
 
-    Review.objects.create(
+    review_factory(
         task=task1,
         reviewer=reviewer1,
         recipient=recipient,
@@ -46,7 +27,7 @@ def test_update_user_average_rating_on_review_creation():
     recipient.refresh_from_db()
     assert recipient.average_rating == 5.0
 
-    Review.objects.create(
+    review_factory(
         task=task2,
         reviewer=reviewer2,
         recipient=recipient,

@@ -11,18 +11,12 @@ User = get_user_model()
 
 @pytest.mark.django_db
 @patch("apps.proposals.services.send_email_task.delay")
-def test_accept_proposal(mock_send_email_task, proposal_factory, user_factory):
+def test_accept_proposal(mock_send_email_task, user_factory, proposal_factory):
     freelancer1 = user_factory(email="f1@f1.com", role=User.UserRole.FREELANCER)
     freelancer2 = user_factory(email="f2@f2.com", role=User.UserRole.FREELANCER)
 
-    proposal = proposal_factory(
-        status=Proposal.ProposalStatus.PENDING, freelancer=freelancer1
-    )
-    other_proposal = proposal_factory(
-        task=proposal.task,
-        status=Proposal.ProposalStatus.PENDING,
-        freelancer=freelancer2,
-    )
+    proposal = proposal_factory(freelancer=freelancer1)
+    other_proposal = proposal_factory(task=proposal.task, freelancer=freelancer2)
 
     services.accept_proposal(proposal)
 
@@ -33,14 +27,13 @@ def test_accept_proposal(mock_send_email_task, proposal_factory, user_factory):
     assert proposal.status == Proposal.ProposalStatus.ACCEPTED
     assert proposal.task.freelancer == proposal.freelancer
     assert other_proposal.status == Proposal.ProposalStatus.REJECTED
-
     assert mock_send_email_task.call_count == 2
 
 
 @pytest.mark.django_db
 @patch("apps.proposals.services.send_email_task.delay")
 def test_reject_proposal(mock_send_email_task, proposal_factory):
-    proposal = proposal_factory(status=Proposal.ProposalStatus.PENDING)
+    proposal = proposal_factory()
 
     services.reject_proposal(proposal)
 

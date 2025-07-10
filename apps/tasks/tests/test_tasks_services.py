@@ -9,7 +9,7 @@ from apps.tasks.models import Task
 @pytest.mark.django_db
 @patch("apps.tasks.services.send_email_task.delay")
 def test_start_task(mock_send_email_task, task_factory, freelancer_user):
-    task = task_factory(status=Task.TaskStatus.OPEN, freelancer=freelancer_user)
+    task = task_factory(freelancer=freelancer_user)
 
     services.start_task(task)
 
@@ -61,7 +61,7 @@ def test_reject_task_submission(mock_send_email_task, task_factory, freelancer_u
 @pytest.mark.django_db
 @patch("apps.tasks.services.send_email_task.delay")
 def test_cancel_task_as_client(mock_send_email_task, task_factory, freelancer_user):
-    task = task_factory(status=Task.TaskStatus.OPEN, freelancer=freelancer_user)
+    task = task_factory(freelancer=freelancer_user)
 
     services.cancel_task(task, task.client)
 
@@ -73,7 +73,7 @@ def test_cancel_task_as_client(mock_send_email_task, task_factory, freelancer_us
 @pytest.mark.django_db
 @patch("apps.tasks.services.send_email_task.delay")
 def test_cancel_task_as_freelancer(mock_send_email_task, task_factory, freelancer_user):
-    task = task_factory(status=Task.TaskStatus.OPEN, freelancer=freelancer_user)
+    task = task_factory(freelancer=freelancer_user)
 
     services.cancel_task(task, task.freelancer)
 

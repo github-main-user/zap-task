@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
-
 from django_fsm import TransitionNotAllowed
+
 from apps.tasks.models import Task
 
 User = get_user_model()
@@ -11,132 +11,122 @@ User = get_user_model()
 
 
 @pytest.mark.django_db
-def test_start_task_successfully(task_obj, freelancer_user):
-    task_obj.freelancer = freelancer_user
-    task_obj.save()
+def test_start_task_successfully(freelancer_user, task_factory):
+    task = task_factory(freelancer=freelancer_user)
+    task.start()
 
-    task_obj.start()
-    assert task_obj.status == Task.TaskStatus.IN_PROGRESS
-
-
-@pytest.mark.django_db
-def test_start_task_without_freelancer_raises_exception(task_obj):
-    with pytest.raises(TransitionNotAllowed):
-        task_obj.start()
+    assert task.status == Task.TaskStatus.IN_PROGRESS
 
 
 @pytest.mark.django_db
-def test_start_task_with_invalid_status_raises_exception(task_obj, freelancer_user):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.IN_PROGRESS
-    task_obj.save()
+def test_start_task_without_freelancer_raises_exception(task_factory):
+    task = task_factory()
 
     with pytest.raises(TransitionNotAllowed):
-        task_obj.start()
+        task.start()
+
+
+@pytest.mark.django_db
+def test_start_task_with_invalid_status_raises_exception(freelancer_user, task_factory):
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.IN_PROGRESS)
+
+    with pytest.raises(TransitionNotAllowed):
+        task.start()
 
 
 # begin_review
 
 
 @pytest.mark.django_db
-def test_begin_review_successfully(task_obj, freelancer_user):
-    task_obj.freelancer = freelancer_user
-    task_obj.status = Task.TaskStatus.IN_PROGRESS
-    task_obj.save()
+def test_begin_review_successfully(freelancer_user, task_factory):
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.IN_PROGRESS)
+    task.begin_review()
 
-    task_obj.begin_review()
-    assert task_obj.status == Task.TaskStatus.PENDING_REVIEW
+    assert task.status == Task.TaskStatus.PENDING_REVIEW
 
 
 @pytest.mark.django_db
-def test_begin_review_with_invalid_status_raises_exception(task_obj):
-    task_obj.status = Task.TaskStatus.OPEN
-    task_obj.save()
+def test_begin_review_with_invalid_status_raises_exception(task_factory):
+    task = task_factory()
 
     with pytest.raises(TransitionNotAllowed):
-        task_obj.begin_review()
+        task.begin_review()
 
 
 # complete
 
 
 @pytest.mark.django_db
-def test_complete_task_successfully(task_obj):
-    task_obj.status = Task.TaskStatus.PENDING_REVIEW
-    task_obj.save()
+def test_complete_task_successfully(task_factory):
+    task = task_factory(status=Task.TaskStatus.PENDING_REVIEW)
+    task.complete()
 
-    task_obj.complete()
-    assert task_obj.status == Task.TaskStatus.COMPLETED
+    assert task.status == Task.TaskStatus.COMPLETED
 
 
 @pytest.mark.django_db
-def test_complete_task_with_invalid_status_raises_exception(task_obj):
-    task_obj.status = Task.TaskStatus.IN_PROGRESS
-    task_obj.save()
+def test_complete_task_with_invalid_status_raises_exception(task_factory):
+    task = task_factory(status=Task.TaskStatus.IN_PROGRESS)
 
     with pytest.raises(TransitionNotAllowed):
-        task_obj.complete()
+        task.complete()
 
 
 # reject
 
 
 @pytest.mark.django_db
-def test_reject_task_successfully(task_obj):
-    task_obj.status = Task.TaskStatus.PENDING_REVIEW
-    task_obj.save()
+def test_reject_task_successfully(task_factory):
+    task = task_factory(status=Task.TaskStatus.PENDING_REVIEW)
+    task.reject()
 
-    task_obj.reject()
-    assert task_obj.status == Task.TaskStatus.IN_PROGRESS
+    assert task.status == Task.TaskStatus.IN_PROGRESS
 
 
 @pytest.mark.django_db
-def test_reject_task_with_invalid_status_raises_exception(task_obj):
-    task_obj.status = Task.TaskStatus.COMPLETED
-    task_obj.save()
+def test_reject_task_with_invalid_status_raises_exception(task_factory):
+    task = task_factory(status=Task.TaskStatus.COMPLETED)
 
     with pytest.raises(TransitionNotAllowed):
-        task_obj.reject()
+        task.reject()
 
 
 # cancel
 
 
 @pytest.mark.django_db
-def test_cancel_task_successfully(task_obj):
-    assert task_obj.status == Task.TaskStatus.OPEN
-    task_obj.cancel()
-    assert task_obj.status == Task.TaskStatus.CANCELED
+def test_cancel_task_successfully(task_factory):
+    task = task_factory()
+    task.cancel()
+
+    assert task.status == Task.TaskStatus.CANCELED
 
 
 @pytest.mark.django_db
-def test_cancel_task_with_invalid_status_raises_exception(task_obj):
-    task_obj.status = Task.TaskStatus.IN_PROGRESS
-    task_obj.save()
+def test_cancel_task_with_invalid_status_raises_exception(task_factory):
+    task = task_factory(status=Task.TaskStatus.IN_PROGRESS)
 
     with pytest.raises(TransitionNotAllowed):
-        task_obj.cancel()
+        task.cancel()
 
 
 # expire
 
 
 @pytest.mark.django_db
-def test_expire_task_from_open_successfully(task_obj):
-    task_obj.status = Task.TaskStatus.OPEN
-    task_obj.save()
+def test_expire_task_from_open_successfully(task_factory):
+    task = task_factory()
+    task.expire()
 
-    task_obj.expire()
-    assert task_obj.status == Task.TaskStatus.EXPIRED
+    assert task.status == Task.TaskStatus.EXPIRED
 
 
 @pytest.mark.django_db
-def test_expire_task_from_in_progress_successfully(task_obj):
-    task_obj.status = Task.TaskStatus.IN_PROGRESS
-    task_obj.save()
+def test_expire_task_from_in_progress_successfully(task_factory):
+    task = task_factory(status=Task.TaskStatus.IN_PROGRESS)
 
-    task_obj.expire()
-    assert task_obj.status == Task.TaskStatus.EXPIRED
+    task.expire()
+    assert task.status == Task.TaskStatus.EXPIRED
 
 
 @pytest.mark.django_db
@@ -148,9 +138,8 @@ def test_expire_task_from_in_progress_successfully(task_obj):
         Task.TaskStatus.CANCELED,
     ],
 )
-def test_expire_task_with_invalid_status_raises_exception(task_obj, status):
-    task_obj.status = status
-    task_obj.save()
+def test_expire_task_with_invalid_status_raises_exception(task_factory, status):
+    task = task_factory(status=status)
 
     with pytest.raises(TransitionNotAllowed):
-        task_obj.expire()
+        task.expire()

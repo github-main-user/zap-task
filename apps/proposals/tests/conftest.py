@@ -1,3 +1,5 @@
+from functools import partial
+
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -5,89 +7,54 @@ from apps.proposals.models import Proposal
 
 User = get_user_model()
 
-# ==========
-#  fixtures
-# ==========
+
+@pytest.fixture
+def proposal_data():
+    return {"message": "Test proposal Message"}
 
 
 @pytest.fixture
-def proposal_factory(db, task_obj, freelancer_user):
+def proposal_factory(db, freelancer_user, task_factory):
+    task = task_factory()
+
     def _proposal_factory(**kwargs):
         defaults = {
-            "task": task_obj,
+            "task": task,
             "freelancer": freelancer_user,
             "message": "Test proposal message",
             "status": Proposal.ProposalStatus.PENDING,
         }
         defaults.update(kwargs)
         return Proposal.objects.create(**defaults)
+
     return _proposal_factory
 
 
 @pytest.fixture
-def proposal_data():
-    return {"message": "Proposal Message"}
-
-
-@pytest.fixture
-def proposal_obj(db, proposal_data, task_obj, freelancer_user):
-    return Proposal.objects.create(
-        **proposal_data, task=task_obj, freelancer=freelancer_user
-    )
-
-
-@pytest.fixture
-def proposals(db, task_obj, freelancer_user):
-    freelancer_user_2 = User.objects.create_user(
-        email="freelancer2@example.com",
-        password="password",
-        role=User.UserRole.FREELANCER,
-    )  # type: ignore
-    freelancer_user_3 = User.objects.create_user(
-        email="freelancer3@example.com",
-        password="password",
-        role=User.UserRole.FREELANCER,
-    )  # type: ignore
-    freelancer_user_4 = User.objects.create_user(
-        email="freelancer4@example.com",
-        password="password",
-        role=User.UserRole.FREELANCER,
-    )  # type: ignore
-    freelancer_user_5 = User.objects.create_user(
-        email="freelancer5@example.com",
-        password="password",
-        role=User.UserRole.FREELANCER,
-    )  # type: ignore
+def proposals(db, freelancer_user, user_factory, proposal_factory):
+    freelancer_factory = partial(user_factory, role=User.UserRole.FREELANCER)
 
     return (
-        Proposal.objects.create(
-            task=task_obj,
+        proposal_factory(
             freelancer=freelancer_user,
             message="Pending proposal 1",
-            status=Proposal.ProposalStatus.PENDING,
         ),
-        Proposal.objects.create(
-            task=task_obj,
-            freelancer=freelancer_user_2,
+        proposal_factory(
+            freelancer=freelancer_factory(email="fr2@fr2.com"),
             message="Accepted proposal 1",
             status=Proposal.ProposalStatus.ACCEPTED,
         ),
-        Proposal.objects.create(
-            task=task_obj,
-            freelancer=freelancer_user_3,
+        proposal_factory(
+            freelancer=freelancer_factory(email="fr3@fr3.com"),
             message="Rejected proposal 1",
             status=Proposal.ProposalStatus.REJECTED,
         ),
-        Proposal.objects.create(
-            task=task_obj,
-            freelancer=freelancer_user_4,
+        proposal_factory(
+            freelancer=freelancer_factory(email="fr4@fr4.com"),
             message="Another pending proposal",
-            status=Proposal.ProposalStatus.PENDING,
         ),
-        Proposal.objects.create(
-            task=task_obj,
-            freelancer=freelancer_user_5,
+        proposal_factory(
+            freelancer=freelancer_factory(email="fr5@fr5.com"),
             message="Yet another proposal",
-            status=Proposal.ProposalStatus.PENDING,
         ),
     )
