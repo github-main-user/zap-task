@@ -15,6 +15,7 @@ class Task(TimeStampModel):
         PENDING_REVIEW = "pending_review", "Pending review"
         COMPLETED = "completed", "Completed"
         CANCELED = "canceled", "Canceled"
+        EXPIRED = "expired", "Expired"
 
     title = models.CharField(max_length=200, help_text="Title of the task.")
     description = models.TextField(help_text="Detailed description of the task.")
@@ -84,3 +85,10 @@ class Task(TimeStampModel):
 
     @transition(field=status, source=TaskStatus.OPEN, target=TaskStatus.CANCELED)
     def cancel(self) -> None: ...
+
+    @transition(
+        field=status,
+        source=[TaskStatus.OPEN, TaskStatus.IN_PROGRESS],
+        target=TaskStatus.EXPIRED,
+    )
+    def expire(self) -> None: ...
