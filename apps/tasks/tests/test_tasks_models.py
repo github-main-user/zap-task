@@ -116,3 +116,41 @@ def test_cancel_task_with_invalid_status_raises_exception(task_obj):
 
     with pytest.raises(TransitionNotAllowed):
         task_obj.cancel()
+
+
+# expire
+
+
+@pytest.mark.django_db
+def test_expire_task_from_open_successfully(task_obj):
+    task_obj.status = Task.TaskStatus.OPEN
+    task_obj.save()
+
+    task_obj.expire()
+    assert task_obj.status == Task.TaskStatus.EXPIRED
+
+
+@pytest.mark.django_db
+def test_expire_task_from_in_progress_successfully(task_obj):
+    task_obj.status = Task.TaskStatus.IN_PROGRESS
+    task_obj.save()
+
+    task_obj.expire()
+    assert task_obj.status == Task.TaskStatus.EXPIRED
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "status",
+    [
+        Task.TaskStatus.PENDING_REVIEW,
+        Task.TaskStatus.COMPLETED,
+        Task.TaskStatus.CANCELED,
+    ],
+)
+def test_expire_task_with_invalid_status_raises_exception(task_obj, status):
+    task_obj.status = status
+    task_obj.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        task_obj.expire()
