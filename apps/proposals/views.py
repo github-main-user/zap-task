@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from apps.tasks.permissions import IsTaskOpen
 from apps.users.permissions import IsFreelancer
 
+from . import services
 from .models import Proposal, Task
 from .permissions import (
     IsClientOfTask,
@@ -118,8 +119,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def accept(self, *args, **kwargs):
         proposal = self.get_object()
-        proposal.accept()
-        proposal.save()
+        services.accept_proposal(proposal)
         return Response(self.get_serializer(proposal).data)
 
     @extend_schema(
@@ -130,6 +130,5 @@ class ProposalViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def reject(self, *args, **kwargs):
         proposal = self.get_object()
-        proposal.reject()
-        proposal.save()
+        services.reject_proposal(proposal)
         return Response(self.get_serializer(proposal).data)

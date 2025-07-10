@@ -5,8 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.core.tasks import send_email_task
 from apps.users.permissions import IsClient
 
+from . import services
 from .models import Task
 from .permissions import (
     IsClientOfTask,
@@ -100,6 +102,11 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
+        send_email_task.delay(
+            subject="Task Created",
+            message=f"Task '{serializer.instance.title}' was created.",
+            recipient_list=[self.request.user.email],
+        )
 
     @extend_schema(
         summary="Start a task",
@@ -110,8 +117,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def start(self, *args, **kwargs):
         task = self.get_object()
-        task.start()
-        task.save()
+        services.start_task(task)
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -123,8 +129,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def submit(self, *args, **kwargs):
         task = self.get_object()
-        task.begin_review()
-        task.save()
+        services.submit_task(task)
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -136,8 +141,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def approve_submission(self, *args, **kwargs):
         task = self.get_object()
-        task.complete()
-        task.save()
+        services.approve_task_submission(task)
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -150,8 +154,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def reject_submission(self, *args, **kwargs):
         task = self.get_object()
-        task.reject()
-        task.save()
+        services.reject_task_submission(task)
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -164,6 +167,5 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def cancel(self, *args, **kwargs):
         task = self.get_object()
-        task.cancel()
-        task.save()
+        services.cancel_task(task, self.request.user)
         return Response(self.get_serializer(task).data)
