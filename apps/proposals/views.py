@@ -119,6 +119,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def accept(self, *args, **kwargs):
         proposal = self.get_object()
         proposal.accept()
+        proposal.save()
         return Response(self.get_serializer(proposal).data)
 
     @extend_schema(
@@ -130,4 +131,5 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def reject(self, *args, **kwargs):
         proposal = self.get_object()
         proposal.reject()
+        proposal.save()
         return Response(self.get_serializer(proposal).data)

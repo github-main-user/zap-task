@@ -111,6 +111,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def start(self, *args, **kwargs):
         task = self.get_object()
         task.start()
+        task.save()
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -123,6 +124,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def submit(self, *args, **kwargs):
         task = self.get_object()
         task.begin_review()
+        task.save()
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -135,6 +137,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def approve_submission(self, *args, **kwargs):
         task = self.get_object()
         task.complete()
+        task.save()
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -148,6 +151,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def reject_submission(self, *args, **kwargs):
         task = self.get_object()
         task.reject()
+        task.save()
         return Response(self.get_serializer(task).data)
 
     @extend_schema(
@@ -161,4 +165,5 @@ class TaskViewSet(viewsets.ModelViewSet):
     def cancel(self, *args, **kwargs):
         task = self.get_object()
         task.cancel()
+        task.save()
         return Response(self.get_serializer(task).data)

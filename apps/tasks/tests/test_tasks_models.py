@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from apps.core.exceptions import InvalidStateTransition
+from django_fsm import TransitionNotAllowed
 from apps.tasks.models import Task
 
 User = get_user_model()
@@ -21,7 +21,7 @@ def test_start_task_successfully(task_obj, freelancer_user):
 
 @pytest.mark.django_db
 def test_start_task_without_freelancer_raises_exception(task_obj):
-    with pytest.raises(InvalidStateTransition):
+    with pytest.raises(TransitionNotAllowed):
         task_obj.start()
 
 
@@ -31,7 +31,7 @@ def test_start_task_with_invalid_status_raises_exception(task_obj, freelancer_us
     task_obj.status = Task.TaskStatus.IN_PROGRESS
     task_obj.save()
 
-    with pytest.raises(InvalidStateTransition):
+    with pytest.raises(TransitionNotAllowed):
         task_obj.start()
 
 
@@ -53,7 +53,7 @@ def test_begin_review_with_invalid_status_raises_exception(task_obj):
     task_obj.status = Task.TaskStatus.OPEN
     task_obj.save()
 
-    with pytest.raises(InvalidStateTransition):
+    with pytest.raises(TransitionNotAllowed):
         task_obj.begin_review()
 
 
@@ -74,7 +74,7 @@ def test_complete_task_with_invalid_status_raises_exception(task_obj):
     task_obj.status = Task.TaskStatus.IN_PROGRESS
     task_obj.save()
 
-    with pytest.raises(InvalidStateTransition):
+    with pytest.raises(TransitionNotAllowed):
         task_obj.complete()
 
 
@@ -95,7 +95,7 @@ def test_reject_task_with_invalid_status_raises_exception(task_obj):
     task_obj.status = Task.TaskStatus.COMPLETED
     task_obj.save()
 
-    with pytest.raises(InvalidStateTransition):
+    with pytest.raises(TransitionNotAllowed):
         task_obj.reject()
 
 
@@ -114,5 +114,5 @@ def test_cancel_task_with_invalid_status_raises_exception(task_obj):
     task_obj.status = Task.TaskStatus.IN_PROGRESS
     task_obj.save()
 
-    with pytest.raises(InvalidStateTransition):
+    with pytest.raises(TransitionNotAllowed):
         task_obj.cancel()

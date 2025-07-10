@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django_fsm import FSMField, transition
 
-from apps.core.exceptions import InvalidStateTransition
 from apps.core.models import TimeStampModel
 from apps.tasks.models import Task
 
@@ -27,7 +27,7 @@ class Proposal(TimeStampModel):
         related_name="proposals",
         help_text="Freelancer who made the proposal.",
     )
-    status = models.CharField(
+    status = FSMField(
         max_length=8,
         choices=ProposalStatus.choices,
         default=ProposalStatus.PENDING,
@@ -49,30 +49,25 @@ class Proposal(TimeStampModel):
             f"by {self.freelancer.username} [{self.status}]"
         )
 
-    def accept(self) -> None:
-        if self.status != self.ProposalStatus.PENDING:
-            raise InvalidStateTransition(
-                f'Cannot accept a proposal that is already in "{self.status}" state.'
-            )
-        if self.task.status != Task.TaskStatus.OPEN:
-            raise InvalidStateTransition(
-                f'Cannot accept a proposal for a task that is in "{self.task.status}" '
-                "state."
-            )
+    def can_accept(self) -> bool:
+        return self.task.status == Task.TaskStatus.OPEN
 
-        self.status = self.ProposalStatus.ACCEPTED
+    @transition(
+        field=status,
+        source=ProposalStatus.PENDING,
+        target=ProposalStatus.ACCEPTED,
+        conditions=[can_accept],
+    )
+    def accept(self) -> None:
         self.task.freelancer = self.freelancer
         self.task.save()
-        self.save()
         Proposal.objects.filter(task=self.task).exclude(pk=self.pk).update(
             status=self.ProposalStatus.REJECTED
         )
 
-    def reject(self) -> None:
-        if self.status != self.ProposalStatus.PENDING:
-            raise InvalidStateTransition(
-                f'Cannot reject a proposal that is already in "{self.status}" state.'
-            )
-
-        self.status = self.ProposalStatus.REJECTED
-        self.save()
+    @transition(
+        field=status,
+        source=ProposalStatus.PENDING,
+        target=ProposalStatus.REJECTED,
+    )
+    def reject(self) -> None: ...

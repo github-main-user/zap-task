@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django_fsm import FSMField, transition
 
-from apps.core.exceptions import InvalidStateTransition
 from apps.core.models import TimeStampModel
 
 User = get_user_model()
@@ -25,7 +25,7 @@ class Task(TimeStampModel):
         help_text="Price for the task.",
     )
     deadline = models.DateTimeField(help_text="Deadline for the task.")
-    status = models.CharField(
+    status = FSMField(
         max_length=15,
         choices=TaskStatus.choices,
         default=TaskStatus.OPEN,
@@ -56,51 +56,31 @@ class Task(TimeStampModel):
     def __str__(self) -> str:
         return f"Task #{self.pk} '{self.title}' [{self.status}]"
 
-    def start(self) -> None:
-        if self.status != self.TaskStatus.OPEN:
-            raise InvalidStateTransition(
-                f'Cannot start a task that is in "{self.status}" state.'
-            )
-        if not self.freelancer:
-            raise InvalidStateTransition(
-                "Cannot start a task without an assigned freelancer."
-            )
+    def has_freelancer(self) -> bool:
+        return self.freelancer is not None
 
-        self.status = self.TaskStatus.IN_PROGRESS
-        self.save()
+    @transition(
+        field=status,
+        source=TaskStatus.OPEN,
+        target=TaskStatus.IN_PROGRESS,
+        conditions=[has_freelancer],
+    )
+    def start(self) -> None: ...
 
-    def begin_review(self) -> None:
-        if self.status != self.TaskStatus.IN_PROGRESS:
-            raise InvalidStateTransition(
-                f'Cannot begin review for a task that is in "{self.status}" state.'
-            )
+    @transition(
+        field=status, source=TaskStatus.IN_PROGRESS, target=TaskStatus.PENDING_REVIEW
+    )
+    def begin_review(self) -> None: ...
 
-        self.status = self.TaskStatus.PENDING_REVIEW
-        self.save()
+    @transition(
+        field=status, source=TaskStatus.PENDING_REVIEW, target=TaskStatus.COMPLETED
+    )
+    def complete(self) -> None: ...
 
-    def complete(self) -> None:
-        if self.status != self.TaskStatus.PENDING_REVIEW:
-            raise InvalidStateTransition(
-                f'Cannot complete a task that is in "{self.status}" state.'
-            )
+    @transition(
+        field=status, source=TaskStatus.PENDING_REVIEW, target=TaskStatus.IN_PROGRESS
+    )
+    def reject(self) -> None: ...
 
-        self.status = self.TaskStatus.COMPLETED
-        self.save()
-
-    def reject(self) -> None:
-        if self.status != self.TaskStatus.PENDING_REVIEW:
-            raise InvalidStateTransition(
-                f'Cannot reject a task that is in "{self.status}" state.'
-            )
-
-        self.status = self.TaskStatus.IN_PROGRESS
-        self.save()
-
-    def cancel(self) -> None:
-        if self.status != self.TaskStatus.OPEN:
-            raise InvalidStateTransition(
-                f"Cannot cancel a task that is in {self.status} state."
-            )
-
-        self.status = self.TaskStatus.CANCELED
-        self.save()
+    @transition(field=status, source=TaskStatus.OPEN, target=TaskStatus.CANCELED)
+    def cancel(self) -> None: ...
