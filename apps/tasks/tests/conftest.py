@@ -12,6 +12,22 @@ User = get_user_model()
 
 
 @pytest.fixture
+def task_factory(db, client_user):
+    def _task_factory(**kwargs):
+        defaults = {
+            "client": client_user,
+            "title": "Test Task",
+            "description": "Description for test task",
+            "price": 100.00,
+            "deadline": "2099-12-31T23:59:59Z",
+            "status": Task.TaskStatus.OPEN,
+        }
+        defaults.update(kwargs)
+        return Task.objects.create(**defaults)
+    return _task_factory
+
+
+@pytest.fixture
 def tasks(db, client_user, freelancer_user):
     return (
         Task.objects.create(
