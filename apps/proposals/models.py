@@ -58,12 +58,7 @@ class Proposal(TimeStampModel):
         target=ProposalStatus.ACCEPTED,
         conditions=[can_accept],
     )
-    def accept(self) -> None:
-        self.task.freelancer = self.freelancer
-        self.task.save()
-        Proposal.objects.filter(task=self.task).exclude(pk=self.pk).update(
-            status=self.ProposalStatus.REJECTED
-        )
+    def accept(self) -> None: ...
 
     @transition(
         field=status,

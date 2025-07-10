@@ -11,30 +11,10 @@ User = get_user_model()
 
 
 @pytest.mark.django_db
-def test_accept_proposal_successfully(task_obj, freelancer_user):
-    proposal_to_accept = Proposal.objects.create(
-        task=task_obj,
-        freelancer=freelancer_user,
-        status=Proposal.ProposalStatus.PENDING,
-    )
-    other_freelancer = User.objects.create_user(
-        "other@freelancer.com", "password", role=User.UserRole.FREELANCER
-    )
-    other_proposal = Proposal.objects.create(
-        task=task_obj,
-        freelancer=other_freelancer,
-        status=Proposal.ProposalStatus.PENDING,
-    )
-
-    proposal_to_accept.accept()
-    proposal_to_accept.save()
-
-    proposal_to_accept.refresh_from_db()
-    other_proposal.refresh_from_db()
-    task_obj.refresh_from_db()
-    assert proposal_to_accept.status == Proposal.ProposalStatus.ACCEPTED
-    assert task_obj.freelancer == freelancer_user
-    assert other_proposal.status == Proposal.ProposalStatus.REJECTED
+def test_accept_proposal_successfully(proposal_obj):
+    assert proposal_obj.status == Proposal.ProposalStatus.PENDING
+    proposal_obj.accept()
+    assert proposal_obj.status == Proposal.ProposalStatus.ACCEPTED
 
 
 @pytest.mark.django_db

@@ -8,6 +8,8 @@ def accept_proposal(proposal: Proposal) -> None:
     Accepts a proposal, updates the associated task, rejects other proposals,
     and sends email notifications.
     """
+    proposal.task.freelancer = proposal.freelancer
+    proposal.task.save()
     proposal.accept()
     proposal.save()
 
@@ -19,16 +21,15 @@ def accept_proposal(proposal: Proposal) -> None:
     )
 
     # Send email to other freelancers whose proposals were rejected
-    rejected_proposals = Proposal.objects.filter(task=proposal.task).exclude(
+    proposals_to_reject = Proposal.objects.filter(task=proposal.task).exclude(
         pk=proposal.pk
     )
-    for rejected_proposal in rejected_proposals:
+    proposals_to_reject.update(status=Proposal.ProposalStatus.REJECTED)
+    for proposal in proposals_to_reject:
         send_email_task.delay(
             subject="Proposal Rejected",
-            message=(
-                f"Your proposal for task '{rejected_proposal.task.title}' was rejected."
-            ),
-            recipient_list=[rejected_proposal.freelancer.email],
+            message=(f"Your proposal for task '{proposal.task.title}' was rejected."),
+            recipient_list=[proposal.freelancer.email],
         )
 
 
