@@ -165,6 +165,21 @@ files = [
 Django = ">=4.2"
 
 [[package]]
+name = "django-fsm-2"
+version = "4.0.0"
+description = "Django friendly finite state machine support."
+optional = false
+python-versions = "<4.0,>=3.8"
+groups = ["main"]
+files = [
+    {file = "django_fsm_2-4.0.0-py3-none-any.whl", hash = "sha256:622bea2f1bd52b3e85a70b7e9137a5f116ea9f42ba2f50a4609bde4035ac0092"},
+    {file = "django_fsm_2-4.0.0.tar.gz", hash = "sha256:e7cff1c192c2f8f7d46219d2681d2f2ae2def800373b477c81a98beb59c683bd"},
+]
+
+[package.dependencies]
+django = ">=4.2"
+
+[[package]]
 name = "djangorestframework"
 version = "3.16.0"
 description = "Web APIs for Django, made easy."
@@ -795,5 +810,5 @@ files = [
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.13"
-content-hash = "6ae6c9e6e775e7dfc2e05a8080698fae37f6e5d10e79818f75afa3646ff9001c"
+python-versions = ">=3.13,<4.0"
+content-hash = "5811a59fff5435695508d14d4e614cf18189d41d0f14ff5698ed83d4884c7ef7"
