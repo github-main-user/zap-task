@@ -12,7 +12,7 @@ User = get_user_model()
 
 @pytest.mark.django_db
 def test_start_task_successfully(freelancer_user, task_factory):
-    task = task_factory(freelancer=freelancer_user)
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.PAID)
     task.start()
 
     assert task.status == Task.TaskStatus.IN_PROGRESS
@@ -20,15 +20,42 @@ def test_start_task_successfully(freelancer_user, task_factory):
 
 @pytest.mark.django_db
 def test_start_task_without_freelancer_raises_exception(task_factory):
-    task = task_factory()
+    task = task_factory(status=Task.TaskStatus.PAID)
 
     with pytest.raises(TransitionNotAllowed):
         task.start()
 
 
 @pytest.mark.django_db
-def test_start_task_with_invalid_status_raises_exception(freelancer_user, task_factory):
-    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.IN_PROGRESS)
+def test_pay_task_successfully(task_factory, freelancer_user):
+    task = task_factory(freelancer=freelancer_user)
+    task.pay()
+
+    assert task.status == Task.TaskStatus.PAID
+
+
+@pytest.mark.django_db
+def test_pay_task_with_invalid_status_raises_exception(task_factory):
+    task = task_factory(status=Task.TaskStatus.IN_PROGRESS)
+
+    with pytest.raises(TransitionNotAllowed):
+        task.pay()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "status",
+    [
+        Task.TaskStatus.OPEN,
+        Task.TaskStatus.IN_PROGRESS,
+        Task.TaskStatus.PENDING_REVIEW,
+        Task.TaskStatus.COMPLETED,
+        Task.TaskStatus.CANCELED,
+        Task.TaskStatus.EXPIRED,
+    ],
+)
+def test_start_task_with_invalid_status_raises_exception(freelancer_user, task_factory, status):
+    task = task_factory(freelancer=freelancer_user, status=status)
 
     with pytest.raises(TransitionNotAllowed):
         task.start()

@@ -21,6 +21,19 @@ def start_task(task: Task) -> None:
     )
 
 
+def pay_task(task: Task) -> None:
+    """Marks a task as paid and sends an email notification."""
+
+    task.pay()
+    task.save()
+    logger.info(f"Task '{task.title}' paid by {task.client.email}.")
+    send_email_notification.delay(
+        subject="Task Paid",
+        message=f"Task '{task.title}' was paid by {task.client}.",
+        recipient_list=[task.client.email, task.freelancer.email],
+    )
+
+
 def submit_task(task: Task) -> None:
     """Submits a task for review and sends an email notification."""
 

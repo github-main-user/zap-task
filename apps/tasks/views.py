@@ -17,6 +17,7 @@ from .permissions import (
     IsFreelancerOfTask,
     IsTaskInProgress,
     IsTaskOpen,
+    IsTaskPaid,
     IsTaskPendingReview,
 )
 from .serializers import TaskSerializer
@@ -78,7 +79,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             permissions += [IsTaskOpen, IsClientOfTask]
         # custom actions
         elif self.action == "start":
-            permissions += [IsTaskOpen, IsFreelancerOfTask]
+            permissions += [IsTaskPaid, IsFreelancerOfTask]
         elif self.action == "submit":
             permissions += [IsTaskInProgress, IsFreelancerOfTask]
         elif self.action in ["approve_submission", "reject_submission"]:
@@ -91,7 +92,8 @@ class TaskViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
         logger.info(
-            f"Task '{serializer.instance.title}' created by user {self.request.user.email}."
+            f"Task '{serializer.instance.title}' created by user "
+            f"{self.request.user.email}."
         )
         send_email_notification.delay(
             subject="Task Created",

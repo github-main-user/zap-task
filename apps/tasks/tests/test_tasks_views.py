@@ -324,7 +324,7 @@ def test_task_delete_task_completed_fail(api_client, client_user, task_factory):
 
 @pytest.mark.django_db
 def test_task_start_as_freelancer_success(api_client, freelancer_user, task_factory):
-    task = task_factory(freelancer=freelancer_user)
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.PAID)
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(reverse("tasks:task-start", args=[task.pk]))
 
@@ -347,15 +347,15 @@ def test_task_start_as_random_user_fail(api_client, random_user, task_factory):
 
 
 @pytest.mark.django_db
-def test_task_start_task_not_open_fail(api_client, freelancer_user, task_factory):
-    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
+def test_task_start_task_not_paid_fail(api_client, freelancer_user, task_factory):
+    task = task_factory(freelancer=freelancer_user)
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(reverse("tasks:task-start", args=[task.pk]))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "id" not in response.data
     task.refresh_from_db()
-    assert task.status == Task.TaskStatus.COMPLETED
+    assert task.status == Task.TaskStatus.OPEN
 
 
 # submit

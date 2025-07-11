@@ -11,6 +11,7 @@ User = get_user_model()
 class Task(TimeStampModel):
     class TaskStatus(models.TextChoices):
         OPEN = "open", "Open"
+        PAID = "paid", "Paid"
         IN_PROGRESS = "in_progress", "In progress"
         PENDING_REVIEW = "pending_review", "Pending review"
         COMPLETED = "completed", "Completed"
@@ -60,9 +61,12 @@ class Task(TimeStampModel):
     def has_freelancer(self) -> bool:
         return self.freelancer is not None
 
+    @transition(field=status, source=TaskStatus.OPEN, target=TaskStatus.PAID, conditions=[has_freelancer])
+    def pay(self) -> None: ...
+
     @transition(
         field=status,
-        source=TaskStatus.OPEN,
+        source=TaskStatus.PAID,
         target=TaskStatus.IN_PROGRESS,
         conditions=[has_freelancer],
     )
@@ -88,7 +92,7 @@ class Task(TimeStampModel):
 
     @transition(
         field=status,
-        source=[TaskStatus.OPEN, TaskStatus.IN_PROGRESS],
+        source=[TaskStatus.OPEN, TaskStatus.PAID, TaskStatus.IN_PROGRESS],
         target=TaskStatus.EXPIRED,
     )
     def expire(self) -> None: ...

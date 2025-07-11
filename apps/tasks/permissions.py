@@ -14,6 +14,17 @@ class IsTaskOpen(BasePermission):
         return task.status == Task.TaskStatus.OPEN
 
 
+class IsTaskPaid(BasePermission):
+    """
+    Permission to check if the task is paid.
+    """
+
+    message = "This task is not paid."
+
+    def has_object_permission(self, request, view, task):
+        return task.status == Task.TaskStatus.PAID
+
+
 class IsTaskInProgress(BasePermission):
     """
     Permission to check if the task is in progress.
