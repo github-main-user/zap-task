@@ -24,6 +24,7 @@ class User(AbstractUser, TimeStampModel):
     average_rating = models.FloatField(
         default=0.0, help_text="Average rating of the user."
     )
+    bio = models.TextField(blank=True, help_text="A short biography of the user.")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
