@@ -17,12 +17,33 @@ class RegisterSerializer(serializers.ModelSerializer):
 class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "role", "average_rating", "bio")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "average_rating",
+            "bio",
+        )
         read_only_fields = ("role", "average_rating")
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "role", "average_rating", "bio")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "average_rating",
+            "bio",
+        )
         read_only_fields = ("role", "average_rating")
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
