@@ -1,7 +1,7 @@
 import logging
 
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -25,6 +25,36 @@ logger = logging.getLogger(__name__)
 
 
 @extend_schema(tags=["Tasks"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all tasks",
+        description="Retrieves a list of all tasks. Accessible by all users.",
+    ),
+    retrieve=extend_schema(
+        summary="Retrieve a task",
+        description="Retrieves the details of a specific task. Accessible by "
+        "authenticated users.",
+    ),
+    create=extend_schema(
+        summary="Create a new task",
+        description="Creates a new task. Only clients can create tasks.",
+    ),
+    update=extend_schema(
+        summary="Update a task",
+        description="Updates an existing task. Only the client who created the task "
+        "can update it, and only if the task is open.",
+    ),
+    partial_update=extend_schema(
+        summary="Partially update a task",
+        description="Partially updates an existing task. Only the client who created "
+        "the task can update it, and only if the task is open.",
+    ),
+    destroy=extend_schema(
+        summary="Delete a task",
+        description="Deletes a task. Only the client who created the task can delete "
+        "it, and only if the task is open.",
+    ),
+)
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
@@ -37,58 +67,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "description"]
     ordering_fields = ["created_at", "updated_at", "price", "deadline"]
 
-    @extend_schema(
-        summary="List all tasks",
-        description="Retrieves a list of all tasks. Accessible by all users.",
-    )
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @extend_schema(
-        summary="Retrieve a task",
-        description="Retrieves the details of a specific task. Accessible by "
-        "authenticated users.",
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(
-        summary="Create a new task",
-        description="Creates a new task. Only clients can create tasks.",
-    )
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
-    @extend_schema(
-        summary="Update a task",
-        description="Updates an existing task. Only the client who created the task "
-        "can update it, and only if the task is open.",
-    )
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    @extend_schema(
-        summary="Partially update a task",
-        description="Partially updates an existing task. Only the client who created "
-        "the task can update it, and only if the task is open.",
-    )
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    @extend_schema(
-        summary="Delete a task",
-        description="Deletes a task. Only the client who created the task can delete "
-        "it, and only if the task is open.",
-    )
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
     def get_permissions(self):
         permissions = [IsAuthenticated]
         # default actions
         if self.action == "list":
             permissions = [AllowAny]
-        if self.action == "create":
+        elif self.action == "create":
             permissions += [IsClient]
         elif self.action in ["update", "partial_update", "destroy"]:
             permissions += [IsTaskOpen, IsClientOfTask]
