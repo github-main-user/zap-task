@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "apps.tasks",
     "apps.proposals",
     "apps.reviews",
+    "apps.payments",
 ]
 
 MIDDLEWARE = [
@@ -183,3 +184,8 @@ CELERY_BROKER_URL = config("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND")
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
+
+
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
