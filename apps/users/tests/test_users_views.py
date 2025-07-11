@@ -163,3 +163,41 @@ def test_retrieve_user_success(api_client, client_user, freelancer_user):
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data.get("id") == freelancer_user.pk
+
+
+# change password
+
+
+def test_change_password_unauthenticated(api_client):
+    response = api_client.put(
+        reverse("users:change-password"),
+        {"old_password": "pass", "new_password": "new_pass"},
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_change_password_success(api_client, client_user):
+    api_client.force_authenticate(client_user)
+    response = api_client.put(
+        reverse("users:change-password"),
+        {"old_password": "pass", "new_password": "new_pass"},
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    client_user.refresh_from_db()
+    assert client_user.check_password("new_pass")
+
+
+@pytest.mark.django_db
+def test_change_password_wrong_old_password(api_client, client_user):
+    api_client.force_authenticate(client_user)
+    response = api_client.put(
+        reverse("users:change-password"),
+        {"old_password": "wrong_pass", "new_password": "new_pass"},
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    client_user.refresh_from_db()
+    assert not client_user.check_password("new_pass")
