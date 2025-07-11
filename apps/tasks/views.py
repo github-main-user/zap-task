@@ -1,19 +1,26 @@
 import logging
 
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, viewsets
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
+from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from apps.core.tasks import send_email_notification
+from apps.payments.services import StripeService
 from apps.users.permissions import IsClient
 
 from . import services
 from .models import Task
 from .permissions import (
     IsClientOfTask,
+    IsFreelancerAssingedToTask,
     IsFreelancerOfTask,
     IsTaskInProgress,
     IsTaskOpen,
@@ -86,6 +93,8 @@ class TaskViewSet(viewsets.ModelViewSet):
             permissions += [IsTaskPendingReview, IsClientOfTask]
         elif self.action == "cancel":
             permissions += [IsTaskOpen, IsFreelancerOfTask | IsClientOfTask]
+        elif self.action == "pay":
+            permissions += [IsTaskOpen, IsFreelancerAssingedToTask, IsClientOfTask]
 
         return [permission() for permission in permissions]
 
@@ -104,7 +113,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Start a task",
         description="Allows a freelancer to start a task. Only accessible if the task "
-        "is open and the user is the assigned freelancer.",
+        "is paid by client and the user is the assigned freelancer of the task.",
         request=None,
     )
     @action(detail=True, methods=["post"])
@@ -162,3 +171,27 @@ class TaskViewSet(viewsets.ModelViewSet):
         task = self.get_object()
         services.cancel_task(task, self.request.user)
         return Response(self.get_serializer(task).data)
+
+    @extend_schema(
+        summary="Create checkout session",
+        description="Creates Stripe checkout session to pay the task. Only task client "
+        "can create.",
+        responses={
+            200: OpenApiResponse(
+                description="Checkout session created",
+                response=inline_serializer(
+                    name="CheckoutSession",
+                    fields={"checkout_url": serializers.URLField()},
+                ),
+            ),
+            500: OpenApiResponse(description="Failed to create checkout url"),
+        },
+    )
+    @action(detail=True, methods=["post"])
+    def pay(self, *args, **kwargs):
+        task = self.get_object()
+        stripe_service = StripeService()
+        checkout_session_url = stripe_service.create_checkout_session(task)
+        if checkout_session_url is None:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"checkout_url": checkout_session_url})

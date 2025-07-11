@@ -67,3 +67,14 @@ class IsFreelancerOfTask(BasePermission):
 
     def has_object_permission(self, request, view, task):
         return task.freelancer == request.user
+
+
+class IsFreelancerAssingedToTask(BasePermission):
+    """
+    Permission to check if a freelancer assigned to the task.
+    """
+
+    message = "This task task no freelancer assigned"
+
+    def has_object_permission(self, request, view, task):
+        return task.freelancer is not None
