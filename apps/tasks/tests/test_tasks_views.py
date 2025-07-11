@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -548,3 +550,69 @@ def test_task_cancel_not_open_fail(
     assert "id" not in response.data
     task.refresh_from_db()
     assert task.status == Task.TaskStatus.COMPLETED
+
+
+# pay
+
+
+@pytest.mark.django_db
+@patch(
+    "apps.tasks.views.StripeService.create_checkout_session",
+    return_value="http://checkout.url"
+)
+def test_task_pay_success(
+    mock_create_checkout_session, api_client, client_user, freelancer_user, task_factory
+):
+    task = task_factory(freelancer=freelancer_user)
+    api_client.force_authenticate(client_user)
+    response = api_client.post(reverse("tasks:task-pay", args=[task.pk]))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data.get("checkout_url") == "http://checkout.url"
+    mock_create_checkout_session.assert_called_once_with(task)
+
+
+@pytest.mark.django_db
+def test_task_pay_as_random_user_fail(api_client, random_user, task_factory):
+    task = task_factory()
+    api_client.force_authenticate(random_user)
+    response = api_client.post(reverse("tasks:task-pay", args=[task.pk]))
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_task_pay_no_freelancer_assigned_fail(
+    api_client, client_user, task_factory
+):
+    task = task_factory()
+    api_client.force_authenticate(client_user)
+    response = api_client.post(reverse("tasks:task-pay", args=[task.pk]))
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_task_pay_task_not_open_fail(
+    api_client, client_user, freelancer_user, task_factory
+):
+    task = task_factory(
+        freelancer=freelancer_user, status=Task.TaskStatus.PAID
+    )
+    api_client.force_authenticate(client_user)
+    response = api_client.post(reverse("tasks:task-pay", args=[task.pk]))
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+@patch("apps.tasks.views.StripeService.create_checkout_session", return_value=None)
+def test_task_pay_create_checkout_session_fails(
+    mock_create_checkout_session, api_client, client_user, freelancer_user, task_factory
+):
+    task = task_factory(freelancer=freelancer_user)
+    api_client.force_authenticate(client_user)
+    response = api_client.post(reverse("tasks:task-pay", args=[task.pk]))
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    mock_create_checkout_session.assert_called_once_with(task)

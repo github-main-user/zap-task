@@ -1,37 +1,9 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from apps.reviews.models import Review
 from apps.tasks.models import Task
 
 User = get_user_model()
-
-# ==========
-#  fixtures
-# ==========
-
-
-@pytest.fixture
-def review_factory(db, task_factory, client_user, freelancer_user):
-    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
-
-    def _review_factory(**kwargs):
-        defaults = {
-            "task": task,
-            "rating": 4,
-            "comment": "Good job, but not great🙄",
-            "reviewer": client_user,
-            "recipient": freelancer_user,
-        }
-        defaults.update(kwargs)
-        return Review.objects.create(**defaults)
-
-    return _review_factory
-
-
-@pytest.fixture
-def review_data():
-    return {"rating": 4, "comment": "Good job, but not great🙄"}
 
 
 @pytest.fixture

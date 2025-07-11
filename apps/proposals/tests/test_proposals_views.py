@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -460,8 +462,7 @@ def test_proposal_accept_as_random_user_fail(api_client, random_user, proposal_f
 def test_proposal_accept_not_pending_proposal_fail(
     api_client, freelancer_user, proposal_factory
 ):
-    proposal = proposal_factory()
-    proposal.reject()
+    proposal = proposal_factory(status=Proposal.ProposalStatus.REJECTED)
     api_client.force_authenticate(freelancer_user)
     response = api_client.post(
         reverse(
@@ -519,11 +520,10 @@ def test_proposal_reject_as_random_user_fail(api_client, random_user, proposal_f
 
 @pytest.mark.django_db
 def test_proposal_reject_not_pending_proposal_fail(
-    api_client, freelancer_user, proposal_factory
+    api_client, client_user, proposal_factory
 ):
-    proposal = proposal_factory()
-    proposal.accept()
-    api_client.force_authenticate(freelancer_user)
+    proposal = proposal_factory(status=Proposal.ProposalStatus.ACCEPTED)
+    api_client.force_authenticate(client_user)
     response = api_client.post(
         reverse(
             "tasks:task-proposals-reject",
