@@ -7,32 +7,34 @@ from apps.tasks.models import Task
 
 
 @pytest.mark.django_db
-@patch("apps.tasks.services.send_email_task.delay")
-def test_start_task(mock_send_email_task, task_factory, freelancer_user):
+@patch("apps.tasks.services.send_email_notification.delay")
+def test_start_task(mock_send_email_notification, task_factory, freelancer_user):
     task = task_factory(freelancer=freelancer_user)
 
     services.start_task(task)
 
     task.refresh_from_db()
     assert task.status == Task.TaskStatus.IN_PROGRESS
-    mock_send_email_task.assert_called_once()
+    mock_send_email_notification.assert_called_once()
 
 
 @pytest.mark.django_db
-@patch("apps.tasks.services.send_email_task.delay")
-def test_submit_task(mock_send_email_task, task_factory, freelancer_user):
+@patch("apps.tasks.services.send_email_notification.delay")
+def test_submit_task(mock_send_email_notification, task_factory, freelancer_user):
     task = task_factory(status=Task.TaskStatus.IN_PROGRESS, freelancer=freelancer_user)
 
     services.submit_task(task)
 
     task.refresh_from_db()
     assert task.status == Task.TaskStatus.PENDING_REVIEW
-    mock_send_email_task.assert_called_once()
+    mock_send_email_notification.assert_called_once()
 
 
 @pytest.mark.django_db
-@patch("apps.tasks.services.send_email_task.delay")
-def test_approve_task_submission(mock_send_email_task, task_factory, freelancer_user):
+@patch("apps.tasks.services.send_email_notification.delay")
+def test_approve_task_submission(
+    mock_send_email_notification, task_factory, freelancer_user
+):
     task = task_factory(
         status=Task.TaskStatus.PENDING_REVIEW, freelancer=freelancer_user
     )
@@ -41,12 +43,14 @@ def test_approve_task_submission(mock_send_email_task, task_factory, freelancer_
 
     task.refresh_from_db()
     assert task.status == Task.TaskStatus.COMPLETED
-    mock_send_email_task.assert_called_once()
+    mock_send_email_notification.assert_called_once()
 
 
 @pytest.mark.django_db
-@patch("apps.tasks.services.send_email_task.delay")
-def test_reject_task_submission(mock_send_email_task, task_factory, freelancer_user):
+@patch("apps.tasks.services.send_email_notification.delay")
+def test_reject_task_submission(
+    mock_send_email_notification, task_factory, freelancer_user
+):
     task = task_factory(
         status=Task.TaskStatus.PENDING_REVIEW, freelancer=freelancer_user
     )
@@ -55,28 +59,32 @@ def test_reject_task_submission(mock_send_email_task, task_factory, freelancer_u
 
     task.refresh_from_db()
     assert task.status == Task.TaskStatus.IN_PROGRESS
-    mock_send_email_task.assert_called_once()
+    mock_send_email_notification.assert_called_once()
 
 
 @pytest.mark.django_db
-@patch("apps.tasks.services.send_email_task.delay")
-def test_cancel_task_as_client(mock_send_email_task, task_factory, freelancer_user):
+@patch("apps.tasks.services.send_email_notification.delay")
+def test_cancel_task_as_client(
+    mock_send_email_notification, task_factory, freelancer_user
+):
     task = task_factory(freelancer=freelancer_user)
 
     services.cancel_task(task, task.client)
 
     task.refresh_from_db()
     assert task.status == Task.TaskStatus.CANCELED
-    mock_send_email_task.assert_called_once()
+    mock_send_email_notification.assert_called_once()
 
 
 @pytest.mark.django_db
-@patch("apps.tasks.services.send_email_task.delay")
-def test_cancel_task_as_freelancer(mock_send_email_task, task_factory, freelancer_user):
+@patch("apps.tasks.services.send_email_notification.delay")
+def test_cancel_task_as_freelancer(
+    mock_send_email_notification, task_factory, freelancer_user
+):
     task = task_factory(freelancer=freelancer_user)
 
     services.cancel_task(task, task.freelancer)
 
     task.refresh_from_db()
     assert task.status == Task.TaskStatus.CANCELED
-    mock_send_email_task.assert_called_once()
+    mock_send_email_notification.assert_called_once()

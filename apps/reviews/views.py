@@ -15,13 +15,34 @@ from .permissions import (
 from .serializers import ReviewSerializer
 
 
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
+from rest_framework import filters, mixins, viewsets
+from rest_framework.permissions import IsAuthenticated
+
+from apps.tasks.models import Task
+
+from .models import Review
+from .permissions import (
+    IsFreelancerAssignedToTask,
+    IsTaskCompleted,
+    IsUserAssociatedWithTask,
+)
+from .serializers import ReviewSerializer
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 @extend_schema(tags=["Reviews"])
 class ReviewViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
-):
+): 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     filter_backends = [
@@ -87,3 +108,7 @@ class ReviewViewSet(
         reviewer = self.request.user
         recipient = task.freelancer if reviewer == task.client else task.client
         serializer.save(reviewer=reviewer, recipient=recipient, task=task)
+        logger.info(
+            f"Review for task '{task.title}' created by {reviewer.email} for "
+            f"{recipient.email}."
+        )

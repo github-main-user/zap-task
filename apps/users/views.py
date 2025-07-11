@@ -5,6 +5,10 @@ from rest_framework.permissions import AllowAny
 
 from .serializers import MeSerializer, RegisterSerializer, UserPublicSerializer
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 User = get_user_model()
 
 
@@ -16,6 +20,10 @@ User = get_user_model()
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = (AllowAny,)
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        logger.info(f"User {user.email} registered successfully.")
 
 
 @extend_schema(

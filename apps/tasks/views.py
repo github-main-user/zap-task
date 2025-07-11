@@ -1,3 +1,5 @@
+import logging
+
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import filters, viewsets
@@ -5,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.core.tasks import send_email_task
+from apps.core.tasks import send_email_notification
 from apps.users.permissions import IsClient
 
 from . import services
@@ -18,6 +20,8 @@ from .permissions import (
     IsTaskPendingReview,
 )
 from .serializers import TaskSerializer
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema(tags=["Tasks"])
@@ -102,7 +106,10 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
-        send_email_task.delay(
+        logger.info(
+            f"Task '{serializer.instance.title}' created by user {self.request.user.email}."
+        )
+        send_email_notification.delay(
             subject="Task Created",
             message=f"Task '{serializer.instance.title}' was created.",
             recipient_list=[self.request.user.email],

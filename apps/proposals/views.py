@@ -19,6 +19,31 @@ from .permissions import (
 from .serializers import ProposalSerializer
 
 
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
+from rest_framework import filters, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from apps.tasks.permissions import IsTaskOpen
+from apps.users.permissions import IsFreelancer
+
+from . import services
+from .models import Proposal, Task
+from .permissions import (
+    IsClientOfTask,
+    IsFreelancerOfProposal,
+    IsProposalPending,
+)
+from .serializers import ProposalSerializer
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 @extend_schema(tags=["Proposals"])
 class ProposalViewSet(viewsets.ModelViewSet):
     queryset = Proposal.objects.all()
@@ -108,6 +133,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
         context["task"] = self.get_task()
         context["freelancer"] = self.request.user
         return context
+
+    def perform_create(self, serializer):
+        serializer.save()
+        logger.info(
+            f"Proposal for task '{self.get_task().title}' created by "
+            f"{self.request.user.email}."
+        )
 
     @extend_schema(
         summary="Accept a proposal",

@@ -10,8 +10,8 @@ User = get_user_model()
 
 
 @pytest.mark.django_db
-@patch("apps.proposals.services.send_email_task.delay")
-def test_accept_proposal(mock_send_email_task, user_factory, proposal_factory):
+@patch("apps.proposals.services.send_email_notification.delay")
+def test_accept_proposal(mock_send_email_notification, user_factory, proposal_factory):
     freelancer1 = user_factory(email="f1@f1.com", role=User.UserRole.FREELANCER)
     freelancer2 = user_factory(email="f2@f2.com", role=User.UserRole.FREELANCER)
 
@@ -27,16 +27,16 @@ def test_accept_proposal(mock_send_email_task, user_factory, proposal_factory):
     assert proposal.status == Proposal.ProposalStatus.ACCEPTED
     assert proposal.task.freelancer == proposal.freelancer
     assert other_proposal.status == Proposal.ProposalStatus.REJECTED
-    assert mock_send_email_task.call_count == 2
+    assert mock_send_email_notification.call_count == 2
 
 
 @pytest.mark.django_db
-@patch("apps.proposals.services.send_email_task.delay")
-def test_reject_proposal(mock_send_email_task, proposal_factory):
+@patch("apps.proposals.services.send_email_notification.delay")
+def test_reject_proposal(mock_send_email_notification, proposal_factory):
     proposal = proposal_factory()
 
     services.reject_proposal(proposal)
 
     proposal.refresh_from_db()
     assert proposal.status == Proposal.ProposalStatus.REJECTED
-    mock_send_email_task.assert_called_once()
+    mock_send_email_notification.assert_called_once()
