@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .serializers import (
     ChangePasswordSerializer,
@@ -83,3 +84,21 @@ class ChangePasswordView(generics.GenericAPIView):
 
         logger.info(f"User {user.email} changed password successfully.")
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(
+    summary="Obtain token pair",
+    description="This endpoint allows users to obtain a token pair.",
+    tags=["Users"],
+)
+class DecoratedTokenObtainPairView(TokenObtainPairView):
+    pass
+
+
+@extend_schema(
+    summary="Refresh token",
+    description="This endpoint allows users to refresh their token.",
+    tags=["Users"],
+)
+class DecoratedTokenRefreshView(TokenRefreshView):
+    pass
