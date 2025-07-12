@@ -2,7 +2,7 @@
 
 [![CI/CD Pipeline](https://github.com/github-main-user/zap-task/actions/workflows/main.yml/badge.svg)](https://github.com/github-main-user/zap-task/actions/workflows/main.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/github-main-user/zap-task/actions/workflows/main.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)](https://github.com/github-main-user/zap-task/actions/workflows/main.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Zap-Task is a full-featured REST API that simulates a freelance marketplace. It allows users to post tasks they need help with, and for other users (freelancers) to submit proposals to complete those tasks. This project is designed to showcase a robust backend implementation using modern Python and Django practices.
