@@ -176,6 +176,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         summary="Create checkout session",
         description="Creates Stripe checkout session to pay the task. Only task client "
         "can create.",
+        request=None,
         responses={
             200: OpenApiResponse(
                 description="Checkout session created",
