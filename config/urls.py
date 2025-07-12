@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import (
@@ -18,3 +20,6 @@ urlpatterns = [
     path("api/v1/tasks/", include("apps.tasks.urls", namespace="tasks")),
     path("api/v1/payments/", include("apps.payments.urls", namespace="payments")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
