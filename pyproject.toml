@@ -33,4 +33,22 @@ pytest = "^8.4.1"
 pytest-django = "^4.11.1"
 coverage = "^7.9.2"
 flake8 = "^7.3.0"
+black = "^25.1.0"
+isort = "^6.0.1"
 
+[tool.black]
+line-length = 88
+target-version = ['py313']
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
