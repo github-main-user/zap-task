@@ -61,7 +61,12 @@ class Task(TimeStampModel):
     def has_freelancer(self) -> bool:
         return self.freelancer is not None
 
-    @transition(field=status, source=TaskStatus.OPEN, target=TaskStatus.PAID, conditions=[has_freelancer])
+    @transition(
+        field=status,
+        source=TaskStatus.OPEN,
+        target=TaskStatus.PAID,
+        conditions=[has_freelancer],
+    )
     def pay(self) -> None: ...
 
     @transition(

@@ -558,7 +558,7 @@ def test_task_cancel_not_open_fail(
 @pytest.mark.django_db
 @patch(
     "apps.tasks.views.StripeService.create_checkout_session",
-    return_value="http://checkout.url"
+    return_value="http://checkout.url",
 )
 def test_task_pay_success(
     mock_create_checkout_session, api_client, client_user, freelancer_user, task_factory
@@ -582,9 +582,7 @@ def test_task_pay_as_random_user_fail(api_client, random_user, task_factory):
 
 
 @pytest.mark.django_db
-def test_task_pay_no_freelancer_assigned_fail(
-    api_client, client_user, task_factory
-):
+def test_task_pay_no_freelancer_assigned_fail(api_client, client_user, task_factory):
     task = task_factory()
     api_client.force_authenticate(client_user)
     response = api_client.post(reverse("tasks:task-pay", args=[task.pk]))
@@ -596,9 +594,7 @@ def test_task_pay_no_freelancer_assigned_fail(
 def test_task_pay_task_not_open_fail(
     api_client, client_user, freelancer_user, task_factory
 ):
-    task = task_factory(
-        freelancer=freelancer_user, status=Task.TaskStatus.PAID
-    )
+    task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.PAID)
     api_client.force_authenticate(client_user)
     response = api_client.post(reverse("tasks:task-pay", args=[task.pk]))
 

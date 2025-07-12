@@ -151,7 +151,7 @@ def test_review_create_unauthenticated(api_client, review_data, task_factory):
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert not "id" in review_data
+    assert "id" not in review_data
 
 
 @pytest.mark.django_db
@@ -201,7 +201,7 @@ def test_review_create_freelancer_is_not_assigned_fail(
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
+    assert "id" not in response.data
     assert not Review.objects.filter(reviewer=task.client).exists()
 
 
@@ -216,7 +216,7 @@ def test_review_create_task_is_not_completed_fail(
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
+    assert "id" not in response.data
     assert not Review.objects.filter(reviewer=task.client).exists()
 
 
@@ -231,7 +231,7 @@ def test_review_create_as_random_user_fail(
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
+    assert "id" not in response.data
     assert not Review.objects.filter(reviewer=random_user).exists()
 
 
@@ -240,14 +240,14 @@ def test_review_create_violate_unique_constraint_fail(
     api_client, freelancer_user, review_data, review_factory, task_factory
 ):
     task = task_factory(freelancer=freelancer_user, status=Task.TaskStatus.COMPLETED)
-    review = review_factory(task=task)
+    review = review_factory(task=task)  # noqa: F841
     api_client.force_authenticate(task.client)
     response = api_client.post(
         reverse("tasks:task-reviews-list", args=[task.pk]), review_data
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert not "id" in response.data
+    assert "id" not in response.data
     assert Review.objects.filter(reviewer=task.client).count() == 1
 
 
@@ -261,7 +261,7 @@ def test_review_retrieve_unauthenticated(api_client, review_factory):
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert not "id" in response.data
+    assert "id" not in response.data
 
 
 @pytest.mark.django_db

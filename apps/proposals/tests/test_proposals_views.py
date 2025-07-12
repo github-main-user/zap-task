@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -452,7 +450,7 @@ def test_proposal_accept_as_random_user_fail(api_client, random_user, proposal_f
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
+    assert "id" not in response.data
     proposal.refresh_from_db()
     assert proposal.status != Proposal.ProposalStatus.ACCEPTED
     assert proposal.task.freelancer != proposal.freelancer
@@ -472,7 +470,7 @@ def test_proposal_accept_not_pending_proposal_fail(
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
+    assert "id" not in response.data
     proposal.refresh_from_db()
     assert proposal.status != Proposal.ProposalStatus.ACCEPTED
     assert proposal.task.freelancer != proposal.freelancer
@@ -513,7 +511,7 @@ def test_proposal_reject_as_random_user_fail(api_client, random_user, proposal_f
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
+    assert "id" not in response.data
     proposal.refresh_from_db()
     assert proposal.status != Proposal.ProposalStatus.REJECTED
 
@@ -532,6 +530,6 @@ def test_proposal_reject_not_pending_proposal_fail(
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert not "id" in response.data
+    assert "id" not in response.data
     proposal.refresh_from_db()
     assert proposal.status != Proposal.ProposalStatus.REJECTED

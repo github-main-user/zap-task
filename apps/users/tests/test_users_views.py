@@ -151,7 +151,7 @@ def test_retrieve_user_unauthenticated(api_client, client_user):
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert not "id" in response.data
+    assert "id" not in response.data
 
 
 @pytest.mark.django_db

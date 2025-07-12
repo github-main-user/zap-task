@@ -54,7 +54,9 @@ def test_pay_task_with_invalid_status_raises_exception(task_factory):
         Task.TaskStatus.EXPIRED,
     ],
 )
-def test_start_task_with_invalid_status_raises_exception(freelancer_user, task_factory, status):
+def test_start_task_with_invalid_status_raises_exception(
+    freelancer_user, task_factory, status
+):
     task = task_factory(freelancer=freelancer_user, status=status)
 
     with pytest.raises(TransitionNotAllowed):

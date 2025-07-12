@@ -88,4 +88,3 @@ class ReviewViewSet(
             f"Review for task '{task.title}' created by {reviewer.email} for "
             f"{recipient.email}."
         )
-
