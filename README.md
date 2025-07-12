@@ -88,17 +88,3 @@ This project uses GitHub Actions for continuous integration and continuous deplo
 3.  **Deployment**: Automatically deploys the application to a server when changes are pushed to the `main` branch.
 
 This pipeline ensures that all code is tested and linted before being deployed, which helps to maintain code quality and prevent bugs.
-
-## Project Structure
-
-The project follows a standard Django layout with a dedicated `apps` directory to enforce modularity.
-
-```
-/apps
-├───core/         # Core functionalities, tasks
-├───payments/     # Payment processing logic
-├───proposals/    # Handling proposals for tasks
-├───reviews/      # User reviews and ratings
-├───tasks/        # Task creation and management
-└───users/        # User models, authentication, and profiles
-```
