@@ -65,13 +65,25 @@ def test_refresh_token_invalid(api_client):
 
 
 @pytest.mark.django_db
-def client_user_register_success(api_client):
+def client_user_register_client_success(api_client):
     response = api_client.post(
-        reverse("users:register"), {"email": "new@user.com", "password": "pass"}
+        reverse("users:register"),
+        {"email": "new@user.com", "password": "pass", "role": "client"},
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert User.objects.filter(email="new@user.com").exists()
+    assert User.objects.get(id=response.data.get("id")) == User.UserRole.CLIENT
+
+
+@pytest.mark.django_db
+def client_user_register_freelancer_success(api_client):
+    response = api_client.post(
+        reverse("users:register"),
+        {"email": "new@user.com", "password": "pass", "role": "freelancer"},
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert User.objects.get(id=response.data.get("id")) == User.UserRole.FREELANCER
 
 
 @pytest.mark.django_db
