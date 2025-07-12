@@ -2,6 +2,7 @@ import logging
 
 import stripe
 from django.conf import settings
+from django.db import transaction
 from django.urls import reverse
 
 from apps.core.tasks import send_email_notification
@@ -71,6 +72,7 @@ class StripeService:
 
         return checkout_session.url
 
+    @transaction.atomic
     def handle_webhook_event(self, payload, sig_header) -> None:
         try:
             event = stripe.Webhook.construct_event(

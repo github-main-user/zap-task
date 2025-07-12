@@ -1,5 +1,7 @@
 import logging
 
+from django.db import transaction
+
 from apps.core.tasks import send_email_notification
 
 from .models import Proposal
@@ -7,6 +9,7 @@ from .models import Proposal
 logger = logging.getLogger(__name__)
 
 
+@transaction.atomic
 def accept_proposal(proposal: Proposal) -> None:
     """
     Accepts a proposal, updates the associated task, rejects other proposals,
@@ -34,16 +37,18 @@ def accept_proposal(proposal: Proposal) -> None:
         pk=proposal.pk
     )
     proposals_to_reject.update(status=Proposal.ProposalStatus.REJECTED)
-    for proposal in proposals_to_reject:
+    for rejected_proposal in proposals_to_reject:
         logger.info(
-            f"Proposal for task '{proposal.task.title}' "
-            f"from {proposal.freelancer.email} "
-            f"rejected by {proposal.task.client.email}."
+            f"Proposal for task '{rejected_proposal.task.title}' "
+            f"from {rejected_proposal.freelancer.email} "
+            f"rejected by {rejected_proposal.task.client.email}."
         )
         send_email_notification.delay(
             subject="Proposal Rejected",
-            message=(f"Your proposal for task '{proposal.task.title}' was rejected."),
-            recipient_list=[proposal.freelancer.email],
+            message=(
+                f"Your proposal for task '{rejected_proposal.task.title}' was rejected."
+            ),
+            recipient_list=[rejected_proposal.freelancer.email],
         )
 
 
