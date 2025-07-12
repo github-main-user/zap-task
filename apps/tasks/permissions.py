@@ -4,9 +4,7 @@ from .models import Task
 
 
 class IsTaskOpen(BasePermission):
-    """
-    Permission to check if the task is open.
-    """
+    """Permission to check if the task is open."""
 
     message = "This task is not open."
 
@@ -15,9 +13,7 @@ class IsTaskOpen(BasePermission):
 
 
 class IsTaskPaid(BasePermission):
-    """
-    Permission to check if the task is paid.
-    """
+    """Permission to check if the task is paid."""
 
     message = "This task is not paid."
 
@@ -26,9 +22,7 @@ class IsTaskPaid(BasePermission):
 
 
 class IsTaskInProgress(BasePermission):
-    """
-    Permission to check if the task is in progress.
-    """
+    """Permission to check if the task is in progress."""
 
     message = "This task is not in progress."
 
@@ -37,9 +31,7 @@ class IsTaskInProgress(BasePermission):
 
 
 class IsTaskPendingReview(BasePermission):
-    """
-    Permission to check if the task is pending review.
-    """
+    """Permission to check if the task is pending review."""
 
     message = "This task is not pending review."
 
@@ -48,9 +40,7 @@ class IsTaskPendingReview(BasePermission):
 
 
 class IsClientOfTask(BasePermission):
-    """
-    Permission to check if the user is the client of the task.
-    """
+    """Permission to check if the user is the client of the task."""
 
     message = "You are not the client of this task."
 
@@ -59,9 +49,7 @@ class IsClientOfTask(BasePermission):
 
 
 class IsFreelancerOfTask(BasePermission):
-    """
-    Permission to check if the user is the freelancer of the task.
-    """
+    """Permission to check if the user is the freelancer of the task."""
 
     message = "You are not the freelancer of this task."
 
@@ -70,9 +58,7 @@ class IsFreelancerOfTask(BasePermission):
 
 
 class IsFreelancerAssingedToTask(BasePermission):
-    """
-    Permission to check if a freelancer assigned to the task.
-    """
+    """Permission to check if a freelancer assigned to the task."""
 
     message = "This task task no freelancer assigned"
 

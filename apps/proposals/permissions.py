@@ -6,9 +6,7 @@ from .models import Proposal
 
 
 class IsProposalPending(BasePermission):
-    """
-    Permission to check if a proposal is pending.
-    """
+    """Permission to check if a proposal is pending."""
 
     message = "This action can only be performed on pending proposals."
 
@@ -17,9 +15,7 @@ class IsProposalPending(BasePermission):
 
 
 class IsFreelancerOfProposal(BasePermission):
-    """
-    Permission to check if the user is the freelancer of the proposal.
-    """
+    """Permission to check if the user is the freelancer of the proposal."""
 
     message = "You are not the freelancer of this proposal."
 
@@ -28,9 +24,7 @@ class IsFreelancerOfProposal(BasePermission):
 
 
 class IsClientOfTask(BasePermission):
-    """
-    Permission to check if the user is the client of the task.
-    """
+    """Permission to check if the user is the client of the task."""
 
     message = "You are not the client of this task."
 
@@ -40,9 +34,7 @@ class IsClientOfTask(BasePermission):
 
 
 class IsTaskOpen(BasePermission):
-    """
-    Permission to check if the task is open.
-    """
+    """Permission to check if the task is open."""
 
     message = "This task is not open for proposals."
 

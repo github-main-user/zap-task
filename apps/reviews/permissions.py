@@ -4,9 +4,7 @@ from apps.tasks.models import Task
 
 
 class IsUserAssociatedWithTask(BasePermission):
-    """
-    Permission to check if the user is associated with the task.
-    """
+    """Permission to check if the user is associated with the task."""
 
     message = "You are not associated with this task."
 
@@ -16,9 +14,7 @@ class IsUserAssociatedWithTask(BasePermission):
 
 
 class IsTaskCompleted(BasePermission):
-    """
-    Permission to check if the task is completed.
-    """
+    """Permission to check if the task is completed."""
 
     message = "This task is not completed."
 
@@ -28,9 +24,7 @@ class IsTaskCompleted(BasePermission):
 
 
 class IsFreelancerAssignedToTask(BasePermission):
-    """
-    Permission to check if a freelancer is assigned to the task.
-    """
+    """Permission to check if a freelancer is assigned to the task."""
 
     message = "No freelancer is assigned to this task."
 
@@ -40,9 +34,7 @@ class IsFreelancerAssignedToTask(BasePermission):
 
 
 class IsReviewCreator(BasePermission):
-    """
-    Permission to check if the user is the creator of the review.
-    """
+    """Permission to check if the user is the creator of the review."""
 
     message = "You are not the creator of this review."
 

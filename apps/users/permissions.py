@@ -4,9 +4,7 @@ from .models import User
 
 
 class IsClient(BasePermission):
-    """
-    Permission to check if the user is a client.
-    """
+    """Permission to check if the user is a client."""
 
     message = "You are not a client."
 
@@ -15,9 +13,7 @@ class IsClient(BasePermission):
 
 
 class IsFreelancer(BasePermission):
-    """
-    Permission to check if the user is a freelancer.
-    """
+    """Permission to check if the user is a freelancer."""
 
     message = "You are not a freelancer."
 
