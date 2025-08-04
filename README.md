@@ -37,7 +37,7 @@ Zap-Task is a full-featured REST API that simulates a freelance marketplace. It 
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/github-main-user/zap-task.git
     cd zap-task
     ```
 
